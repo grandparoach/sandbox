@@ -10,5 +10,5 @@ echo "IU_AGENT_PROFILE="$2 >>/etc/environment
 echo "IU_NODE_TYPE=database" >>/etc/environment
 echo "SSH_KEY_PUB_URL="$3 >>/etc/environment
 echo "SSH_KEY_PRIV_URL="$4 >>/etc/environment
-# iu-aws-agent --operation get_single_component --iu-component database --launch-region us-east-1 --iu-version ",{"Ref": "IUInstallVersion"}
+# iu-aws-agent --operation get_single_component --iu-component database --launch-region us-east-1 --iu-version "$5
 # iu-aws-agent --operation get_ssh_key"
