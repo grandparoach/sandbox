@@ -1,0 +1,206 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "StorageAccountName": {
+      "type": "string",
+      "defaultValue": "sroachpocstorage",
+      "metadata": {
+        "description": "This is the name of the Standard Storage Account to be used for the OS Disks for the VM's."
+      }
+    },
+		"AppName" : {
+			"type" : "string",
+			"minLength": 0,
+			"maxLength": 255,
+			"defaultValue" : "default",
+      "metadata": {
+        "description": "Name for the instance of this application topology"
+      }
+		},
+		"IUBastionNodeAMI" : {
+			"type" : "string",
+        "defaultValue": "updatedCentOS71rdma-osDisk.vhd",
+        "minLength": 0,
+        "maxLength": 255,
+        "metadata": {
+          "description": "IU Bastion Node AMI" 
+        }
+    },
+		"IUDomain" : {
+			"type" : "string",
+        "defaultValue": "",
+        "minLength": 0,
+        "maxLength": 255,
+        "metadata": {
+          "description": "Domain name for the App Instance" 
+        }
+    },
+		"IUAgentProfile" : {
+			"type" : "string",
+        "defaultValue": "",
+        "minLength": 0,
+        "maxLength": 255,
+        "metadata": {
+          "description": "AWS Profile for SmartNode agent to use" 
+        }
+    },
+		"IUMasterPubSSHKeyURL" : {
+			"type" : "string",
+        "defaultValue": "",
+        "minLength": 0,
+        "maxLength": 255,
+        "metadata": {
+          "description": "S3 download URL for master Public SSH keyfile" 
+        }
+    },
+		"IUMasterPrivSSHKeyURL" : {
+			"type" : "string",
+        "defaultValue": "",
+        "minLength": 0,
+        "maxLength": 255,
+        "metadata": {
+          "description": "S3 download URL for master Private SSH keyfile" 
+        }
+    },
+		"IUInstallVersion" : {
+			"type" : "string",
+        "defaultValue": "",
+        "minLength": 0,
+        "maxLength": 255,
+        "metadata": {
+          "description": "S3 bucket suffix for IU version to install" 
+        }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Admin username for the VMs in the deployment."
+      }
+    },
+    "authenticationType": {
+      "type": "string",
+      "defaultValue": "sshPublicKey",
+      "allowedValues": [
+        "password",
+        "sshPublicKey"
+      ],
+      "metadata": {
+        "description": "Authentication type for the virtual machines"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Admin password for the virtual machines"
+      }
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDam7h0yXHPTIZvSVFJpzMa57u0Sl2DajhpIulrViV7gGnqka8BDdzy7bgK3UfrY29jiyqwk0952wgGpfn5YaOGlg/0IiZAO+cNRea+U3dJw6/Us0S+iXnBFFQyAtjhxpVmrrE1vNK2MLKQmg0/xqgsVqqjWjO6Bd0xvZjEcGSq7m/o/tLiDX/aWBDKdFWiDlmFqxExeKb5FhSUCCePYEoag4SxnWst+PMrBYxDBPp86+yvKAfSDi+1PDKVrYb/U6VOPJVi7vGLZKoJY+HMRjIwt5zpwFEu+Os85tp3Sim11bjy9lQMHCASajJ0FS9a/WL7CvB1NCcxZrbh/M3SLkIn sroach@pubvmManagement",
+      "metadata": {
+        "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
+      }
+    }
+  },
+  "variables": {
+    "sourceImageURI" : "[concat('https://', parameters('StorageAccountName'),'.blob.core.windows.net/vhds/', parameters('IUBastionNodeAMI'))]",
+    "baseVHDURI" : "[concat('https://', parameters('StorageAccountName'),'.blob.core.windows.net/vhd/')]",     
+    "templateBaseUrl": "https://raw.githubusercontent.com/grandparoach/sandbox/master/",
+    "sshKeyPath": "[concat('/home/',parameters('adminUsername'),'/.ssh/authorized_keys')]",
+    "linuxConfiguration_sshPublicKey": {
+      "disablePasswordAuthentication": "true",
+      "ssh": {
+        "publicKeys": [
+          {
+            "path": "[variables('sshKeyPath')]",
+            "keyData": "[parameters('sshPublicKey')]"
+          }
+        ]
+      }
+    },
+    "linuxConfiguration_password": { },
+    "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "IUBastionNode-nic",
+      "location": "[resourceGroup().location]",
+			"dependsOn": [
+        "Microsoft.Network/virtualNetworks/IUVPC",
+        "Microsoft.Network/publicIPAddresses/IUBastionElasticIP"
+      ],
+      "properties": {
+				"ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+			        "privateIPAddress": "10.0.1.4",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'IUBastionElasticIP')]"
+              },
+              "subnet": {
+                "id": "[concat(resourceId('Microsoft.Network/virtualNetworks', 'IUVPC'), '/subnets/Bastion')]"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "IUBastionNode",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "Microsoft.Network/networkinterfaces/IUBastionNode-nic"
+      ],
+      "tags": { 
+        "Name": "[concat('IU-', parameters('AppName'),'-IUBastionNode')]"
+      },
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "Standard_D2"
+        },
+        "osProfile": {
+          "computername": "IUBastionNode",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "linuxConfiguration": "[variables('linuxConfiguration')]"
+        },
+        "storageProfile": {
+          "osDisk": {
+            "name": "osdisk",
+            "osType": "Linux",
+            "image": {
+              "uri": "[variables('sourceImageURI')]"
+            },
+            "vhd": {
+              "uri": "[concat('http://',parameters('StorageAccountName'),'.blob.core.windows.net/vhd/IUBastionNode.vhd')]"
+            },
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', 'IUBastionNode-nic')]",              
+              "properties": { "primary": true }
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+            "storageUri": "[concat('http://',parameters('StorageAccountName'),'.blob.core.windows.net/')]"
+          }
+        }
+      }
+    }
+  ]
+ }
