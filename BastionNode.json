@@ -4,7 +4,7 @@
   "parameters": {
     "StorageAccountName": {
       "type": "string",
-      "defaultValue": "sroachpocstorage",
+      "defaultValue": "iutest",
       "metadata": {
         "description": "This is the name of the Standard Storage Account to be used for the OS Disks for the VM's."
       }
@@ -20,7 +20,7 @@
 		},
 		"IUBastionNodeAMI" : {
 			"type" : "string",
-        "defaultValue": "updatedCentOS71rdma-osDisk.vhd",
+        "defaultValue": "dbcluster-jul1-1.vhd",
         "minLength": 0,
         "maxLength": 255,
         "metadata": {
