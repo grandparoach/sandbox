@@ -3,7 +3,7 @@
 	"contentVersion": "1.0.0.0",
 	"parameters": {
 		"vmSku": {
-			"defaultValue": "Standard_A1",
+			"defaultValue": "Standard_H16r",
 			"allowedValues": [
 				"Standard_A1",
 				"Standard_A8",
