@@ -1,7 +1,10 @@
 # sandbox
-This sample will deploy:
+This sample will deploy
+
 1. A new isolated Virtual Network 
+
 2. A Jump Box with a public IP address - DS14v2 with 3 x 1TB Premium Disks attached
+
 3. Up to 100 instances of a VM Scale Set (Implicit Availability Set)
 
 This template does not run any scripts.  The attached disks are not formatted or striped.
