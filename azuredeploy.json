@@ -1,0 +1,289 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"vmSku": {
+			"defaultValue": "Standard_A1",
+			"allowedValues": [
+				"Standard_A1",
+				"Standard_A8",
+				"Standard_A9",
+				"Standard_A10",
+				"Standard_A11",
+				"Standard_H16r",
+				"Standard_H16mr"				
+			],
+			"type": "String",
+			"metadata": {
+				"description": "Which instance would you like to deploy to?"
+			}
+		},
+		"vmssName": {
+			"maxLength": 10,
+			"type": "String",
+			"metadata": {
+				"description": "String used as a base for naming resources. Must be 3-10 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
+			}
+		},
+		"instanceCount": {
+			"maxValue": 100,
+			"type": "Int",
+			"metadata": {
+				"description": "Number of VM instances (100 or less)."
+			}
+		},
+		"adminUsername": {
+			"type": "String",
+			"metadata": {
+				"description": "Admin username on all VMs."
+			}
+		},
+		"adminPassword": {
+			"type": "SecureString",
+			"metadata": {
+				"description": "Admin password on all VMs."
+			}
+		}
+	},
+	"variables": {
+		"namingInfix": "[toLower(substring(concat(parameters('vmssName'), uniqueString(resourceGroup().id)), 0, 9))]",
+		"longNamingInfix": "[toLower(parameters('vmssName'))]",
+		"jumpBoxName": "[concat(variables('longNamingInfix'),'jb')]",
+		"jumpBoxSAName": "[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), 'jumpboxsa')), 'jb')]",
+		"jumpBoxOSDiskName": "[concat(variables('jumpBoxName'), 'osdisk')]",
+		"jumpBoxVHDContainerName": "[concat(variables('jumpBoxName'), 'vhd')]",
+		"jumpBoxIPConfigName": "[concat(variables('jumpBoxName'), 'ipconfig')]",
+		"jumpBoxNicName": "[concat(variables('jumpBoxName'), 'nic')]",
+		"storageAccountType": "Standard_LRS",
+		"newStorageAccountSuffix": "[concat(variables('namingInfix'), 'sa')]",
+		"uniqueStringArray": [
+			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '0')))]",
+			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '1')))]",
+			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '2')))]",
+			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '3')))]",
+			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '4')))]"
+		],
+		"saCount": "[length(variables('uniqueStringArray'))]",
+		"vhdContainerName": "[concat(variables('namingInfix'), 'vhd')]",
+		"osDiskName": "[concat(variables('namingInfix'), 'osdisk')]",
+		"addressPrefix": "10.0.0.0/16",
+		"subnetPrefix": "10.0.0.0/24",
+		"virtualNetworkName": "[concat(variables('namingInfix'), 'vnet')]",
+		"subnetName": "[concat(variables('namingInfix'), 'subnet')]",
+		"vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
+		"subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
+		"publicIPAddressName": "[concat(variables('namingInfix'), 'pip')]",
+		"publicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
+		"nicName": "[concat(variables('namingInfix'), 'nic')]",
+		"ipConfigName": "[concat(variables('namingInfix'), 'ipconfig')]",
+		"osType": {
+			"publisher": "OpenLogic",
+			"offer": "CentOS-HPC",
+			"sku": "7.1",
+			"version": "latest"
+		},
+		"imageReference": "[variables('osType')]",
+		"computeApiVersion": "2016-03-30",
+		"networkApiVersion": "2016-03-30",
+		"storageApiVersion": "2015-06-15"
+	},
+	"resources": [{
+		"type": "Microsoft.Network/virtualNetworks",
+		"name": "[variables('virtualNetworkName')]",
+		"apiVersion": "[variables('networkApiVersion')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"addressSpace": {
+				"addressPrefixes": [
+					"[variables('addressPrefix')]"
+				]
+			},
+			"subnets": [{
+				"name": "[variables('subnetName')]",
+				"properties": {
+					"addressPrefix": "[variables('subnetPrefix')]"
+				}
+			}]
+		}
+	}, {
+		"type": "Microsoft.Storage/storageAccounts",
+		"name": "[variables('jumpBoxSAName')]",
+		"apiVersion": "[variables('storageApiVersion')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"accountType": "Premium_LRS"
+		}
+	}, {
+		"type": "Microsoft.Storage/storageAccounts",
+		"name": "[concat(variables('uniqueStringArray')[copyIndex()], variables('newStorageAccountSuffix'))]",
+		"apiVersion": "[variables('storageApiVersion')]",
+		"location": "[resourceGroup().location]",
+		"copy": {
+			"name": "storageLoop",
+			"count": "[variables('saCount')]"
+		},
+		"properties": {
+			"accountType": "[variables('storageAccountType')]"
+		}
+	}, {
+		"type": "Microsoft.Network/publicIPAddresses",
+		"name": "[variables('publicIPAddressName')]",
+		"apiVersion": "[variables('networkApiVersion')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"publicIPAllocationMethod": "Dynamic",
+			"dnsSettings": {
+				"domainNameLabel": "[variables('longNamingInfix')]"
+			}
+		}
+	}, {
+		"type": "Microsoft.Network/networkInterfaces",
+		"name": "[variables('jumpBoxNicName')]",
+		"apiVersion": "[variables('networkApiVersion')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"ipConfigurations": [{
+				"name": "[variables('jumpBoxIPConfigName')]",
+				"properties": {
+					"privateIPAllocationMethod": "Dynamic",
+					"publicIPAddress": {
+						"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
+					},
+					"subnet": {
+						"id": "[variables('subnetRef')]"
+					}
+				}
+			}]
+		},
+		"dependsOn": [
+			"[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
+			"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+		]
+	}, {
+		"type": "Microsoft.Compute/virtualMachines",
+		"name": "[variables('jumpBoxName')]",
+		"apiVersion": "[variables('computeApiVersion')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"hardwareProfile": {
+				"vmSize": "Standard_DS14_v2"
+			},
+			"osProfile": {
+				"computerName": "[variables('jumpBoxName')]",
+				"adminUsername": "[parameters('adminUsername')]",
+				"adminPassword": "[parameters('adminPassword')]"
+			},
+			"storageProfile": {
+				"imageReference": "[variables('imageReference')]",
+				"osDisk": {
+					"name": "[variables('jumpBoxOSDiskName')]",
+					"vhd": {
+						"uri": "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/',variables('jumpBoxOSDiskName'),'.vhd')]"
+					},
+					"caching": "ReadWrite",
+					"createOption": "FromImage"
+				},
+                "dataDisks": [ 
+            { 
+            "name": "datadisk0", 
+            "diskSizeGB": 1023, 
+            "lun": 0, 
+            "vhd": { 
+              "Uri":  "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/datadisk0.vhd')]" 
+              }, 
+            "caching": "ReadWrite", 
+            "createOption": "Empty" 
+            }, 
+            { 
+            "name": "datadisk1", 
+            "diskSizeGB": 1023, 
+            "lun": 1, 
+            "vhd": { 
+              "Uri":  "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/datadisk1.vhd')]"
+              }, 
+            "caching": "ReadWrite", 
+            "createOption": "Empty" 
+            }, 
+            { 
+            "name": "datadisk2", 
+            "diskSizeGB": 1023, 
+            "lun": 2, 
+            "vhd": { 
+              "Uri":  "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/datadisk2.vhd')]" 
+              }, 
+            "caching": "ReadWrite", 
+            "createOption": "Empty" 
+            } 
+          ]
+        },
+			"networkProfile": {
+				"networkInterfaces": [{
+					"id": "[resourceId('Microsoft.Network/networkInterfaces',variables('jumpBoxNicName'))]"
+				}]
+			}
+		},
+		"dependsOn": [
+			"[concat('Microsoft.Storage/storageAccounts/', variables('jumpBoxSAName'))]",
+			"[concat('Microsoft.Network/networkInterfaces/', variables('jumpBoxNicName'))]"
+		]
+	}, {
+		"type": "Microsoft.Compute/virtualMachineScaleSets",
+		"sku": {
+			"name": "[parameters('vmSku')]",
+			"tier": "Standard",
+			"capacity": "[parameters('instanceCount')]"
+		},
+		"name": "[variables('namingInfix')]",
+		"apiVersion": "[variables('computeApiVersion')]",
+		"location": "[resourceGroup().location]",
+		"properties": {
+			"overprovision": "true",
+			"upgradePolicy": {
+				"mode": "Manual"
+			},
+			"virtualMachineProfile": {
+				"storageProfile": {
+					"osDisk": {
+						"vhdContainers": [
+							"[concat('https://', variables('uniqueStringArray')[0], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
+							"[concat('https://', variables('uniqueStringArray')[1], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
+							"[concat('https://', variables('uniqueStringArray')[2], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
+							"[concat('https://', variables('uniqueStringArray')[3], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
+							"[concat('https://', variables('uniqueStringArray')[4], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]"
+						],
+						"name": "[variables('osDiskName')]",
+						"caching": "ReadOnly",
+						"createOption": "FromImage"
+					},
+					"imageReference": "[variables('imageReference')]"
+				},
+				"osProfile": {
+					"computerNamePrefix": "[variables('namingInfix')]",
+					"adminUsername": "[parameters('adminUsername')]",
+					"adminPassword": "[parameters('adminPassword')]"
+				},
+				"networkProfile": {
+					"networkInterfaceConfigurations": [{
+						"name": "[variables('nicName')]",
+						"properties": {
+							"primary": "true",
+							"ipConfigurations": [{
+								"name": "[variables('ipConfigName')]",
+								"properties": {
+									"subnet": {
+										"id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
+									}
+								}
+							}]
+						}
+					}]
+				}
+			}
+		},
+		"dependsOn": [
+			"storageLoop",
+			"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
+		]
+	}]
+}
+
