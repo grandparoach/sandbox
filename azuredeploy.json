@@ -53,9 +53,9 @@
                     
           "vmScripts": {
             "scriptsToDownload": [
-               "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
+                "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
             ],
-            "commandToExecute": "[concat('bash setup.sh', ' ',  parameters('adminPassword'))]"
+            "commandToExecute": "[concat('bash startup.sh', ' ', parameters('adminPassword'))]"
           }
         },
           
@@ -168,6 +168,32 @@
             }
         },
         {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat('Compute-', copyindex(), '/ext')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', 'Compute-', copyindex())]"
+            ],
+            "copy": {
+                "name": "ComputeExtCopy",
+                "count": 2
+              },
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": "[variables('vmScripts').scriptsToDownload]",
+                "timestamp": 12
+              },
+              "protectedSettings": {
+                "commandToExecute": "[variables('vmScripts').commandToExecute]"
+              }
+            }
+        },
+        {
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-10-01",
             "name": "Login",
@@ -210,6 +236,28 @@
                         }
                     ]
                 }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat('Login/ext')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', 'Login')]"
+            ],
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": "[variables('vmScripts').scriptsToDownload]",
+                "timestamp": 12
+              },
+              "protectedSettings": {
+                "commandToExecute": "[variables('vmScripts').commandToExecute]"
+              }
             }
         },
         {
@@ -282,6 +330,32 @@
                         }
                     ]
                 }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat('Storage-', copyindex(), '/ext')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-', copyindex())]"
+            ],
+            "copy": {
+                "name": "StorageExtCopy",
+                "count": 4
+              },
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": "[variables('vmScripts').scriptsToDownload]",
+                "timestamp": 12
+              },
+              "protectedSettings": {
+                "commandToExecute": "[variables('vmScripts').commandToExecute]"
+              }
             }
         },
         {
