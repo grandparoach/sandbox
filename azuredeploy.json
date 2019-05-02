@@ -53,9 +53,9 @@
                     
           "vmScripts": {
             "scriptsToDownload": [
-              "https://raw.githubusercontent.com/grandparoach/HB_HC_MPI/existingVNet/setup.sh"
+               "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
             ],
-            "commandToExecute": "[concat('bash setup.sh', ' ', parameters('adminUserName'), ' ', parameters('adminPassword'))]"
+            "commandToExecute": "[concat('bash setup.sh', ' ',  parameters('adminPassword'))]"
           }
         },
           
