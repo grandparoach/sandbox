@@ -1,13 +1,88 @@
 #!/bin/bash
 set -x
 
+adminPassword=${1}
+
 #disable_selinux
 sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
 setenforce 0
 
-adminPassword=${1}
+# Disable tty requirement for sudo
+sed -i 's/^Defaults[ ]*requiretty/# Defaults requiretty/g' /etc/sudoers
+
+
+HPC_UID=7007
+HPC_GROUP=hpc
+HPC_GID=7007
+
+groupadd -g $HPC_GID $HPC_GROUP
+
+mkdir -p /share/home
+
+yum -y install nfs-utils
+
 #set a password for root
 echo "root:$adminPassword" | chpasswd
+
+if [ `hostname` == "Login" ];
+then
+
+echo "/share/home   *(rw,async)" >> /etc/exports
+systemctl enable rpcbind || echo "Already enabled"
+systemctl enable nfs-server || echo "Already enabled"
+systemctl start rpcbind || echo "Already enabled"
+systemctl start nfs-server || echo "Already enabled"
+exportfs
+exportfs -a
+exportfs 
+
+for HPC_USER in kara tim bob mary rae david joe alice
+    do
+        echo "$HPC_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        useradd -g $HPC_GROUP -m -d /share/home/$HPC_USER -s /bin/bash -u $HPC_UID $HPC_USER
+        
+        mkdir -p /share/home/$HPC_USER/.ssh
+        ssh-keygen -t rsa -f /share/home/$HPC_USER/.ssh/id_rsa -q -P ""
+        cat /share/home/$HPC_USER/.ssh/id_rsa.pub >> /share/home/$HPC_USER/.ssh/authorized_keys
+
+        echo "Host *" > /share/home/$HPC_USER/.ssh/config
+	    echo "    StrictHostKeyChecking no" >> /share/home/$HPC_USER/.ssh/config
+	    echo "    UserKnownHostsFile /dev/null" >> /share/home/$HPC_USER/.ssh/config
+	    echo "    PasswordAuthentication no" >> /share/home/$HPC_USER/.ssh/config
+
+        # Fix .ssh folder ownership
+	    chown -R $HPC_USER:$HPC_GROUP /share/home/$HPC_USER
+
+	    # Fix permissions
+	    chmod 700 /share/home/$HPC_USER/.ssh
+	    chmod 644 /share/home/$HPC_USER/.ssh/config
+	    chmod 644 /share/home/$HPC_USER/.ssh/authorized_keys
+	    chmod 600 /share/home/$HPC_USER/.ssh/id_rsa
+	    chmod 644 /share/home/$HPC_USER/.ssh/id_rsa.pub
+
+        let HPC_UID=$HPC_UID+1
+
+    done
+
+else
+
+sleep 30
+echo "Login:/share/home /share/home nfs4   rw,auto,_netdev 0 0" >> /etc/fstab
+mount -a
+mount
+
+for HPC_USER in kara tim bob mary rae david joe alice
+    do
+        echo "$HPC_USER ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+        
+        useradd -g $HPC_GROUP -d /share/home/$HPC_USER -s /bin/bash -u $HPC_UID $HPC_USER
+        
+        let HPC_UID=$HPC_UID+1
+
+    done
+
+fi
+
 
 #give all the nodes time to complete spinning up
 sleep 60
