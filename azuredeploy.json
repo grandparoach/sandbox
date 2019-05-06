@@ -79,8 +79,7 @@
                 "publicIPAllocationMethod": "Dynamic",
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
-                    "domainNameLabel": "student-2",
-                    "fqdn": "student-2.southcentralus.cloudapp.azure.com"
+                    "domainNameLabel": "[resourceGroup().name]"
                 },
                 "ipTags": []
             }
