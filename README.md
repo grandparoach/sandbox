@@ -6,6 +6,6 @@
 This repository will deploy a login node, two compute nodes, and 4 storage nodes for use in the hands-on labs for the LCI Workshop.
 
 
-![Grid Infrastructure](Doc/Arch.PNG)
+![Workshop Environment](Doc/Diagram.png)
 
 
