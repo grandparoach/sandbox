@@ -6,6 +6,6 @@
 This repository will deploy a login node, two compute nodes, and 4 storage nodes for use in the hands-on labs for the LCI Workshop.
 
 
-![Workshop Environment](Doc/Diagram.png)
+![Workshop Environment](Doc/LCI_environment.png)
 
 
