@@ -176,7 +176,13 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-              "[concat('Microsoft.Compute/virtualMachines/', 'Compute-', copyindex())]"
+              "[concat('Microsoft.Compute/virtualMachines/', 'Login')]",  
+              "[concat('Microsoft.Compute/virtualMachines/', 'Compute-0')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'Compute-1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-0')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-2')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-3')]"
             ],
             "copy": {
                 "name": "ComputeExtCopy",
@@ -247,7 +253,13 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-              "[concat('Microsoft.Compute/virtualMachines/', 'Login')]"
+                "[concat('Microsoft.Compute/virtualMachines/', 'Login')]",  
+                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-0')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-1')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-0')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-1')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-2')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-3')]"
             ],
             "properties": {
               "publisher": "Microsoft.Azure.Extensions",
@@ -341,7 +353,13 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-', copyindex())]"
+                "[concat('Microsoft.Compute/virtualMachines/', 'Login')]",  
+                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-0')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-1')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-0')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-1')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-2')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-3')]"
             ],
             "copy": {
                 "name": "StorageExtCopy",
