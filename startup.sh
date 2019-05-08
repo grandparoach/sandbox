@@ -1,7 +1,8 @@
 #!/bin/bash
 set -x
 
-adminPassword=${1}
+adminUserName=${1}
+adminPassword=${2}
 
 #disable_selinux
 sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
@@ -10,6 +11,8 @@ setenforce 0
 # Disable tty requirement for sudo
 sed -i 's/^Defaults[ ]*requiretty/# Defaults requiretty/g' /etc/sudoers
 
+# Enable Admin User to sudo without a password
+echo "$adminUserName ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 HPC_UID=7007
 HPC_GROUP=hpc
@@ -65,8 +68,9 @@ for HPC_USER in kara tim bob mary rae david joe alice
     done
 
 else
-
+# wait for NFS Server to get configured
 sleep 30
+
 echo "Login:/share/home /share/home nfs4   rw,auto,_netdev 0 0" >> /etc/fstab
 mount -a
 mount
@@ -82,10 +86,6 @@ for HPC_USER in kara tim bob mary rae david joe alice
     done
 
 fi
-
-
-#give all the nodes time to complete spinning up
-sleep 60
 
 configure_ssh() {
     
