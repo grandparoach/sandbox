@@ -2,34 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "CustomImageResourceGroup": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Resource group of the customized disk image"
-            }
-        },
-        "CustomStorageImageName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the customized disk image for the Storage nodes"
-            }
-        },
-        "CustomComputeImageName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the customized disk image for the Compute nodes"
-            }
-        },
-        "CustomLoginImageName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the customized disk image for the login node"
-            }
-        },
         "adminUserName": {
             "type": "string",
             "metadata": {
@@ -46,14 +18,19 @@
     },
     "variables": {
               
-          "NodeimageReference_login": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomLoginImageName'))]"},
-          "NodeimageReference_compute": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomComputeImageName'))]"},
-          "NodeimageReference_storage": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomStorageImageName'))]"},
-          
+        "Images": {
+            "CentOS_7.6": {
+              "publisher": "OpenLogic",
+              "offer": "CentOS",
+              "sku": "7.6",
+              "version": "latest"
+            }
+        },
+        "NodeimageReference": "[variables('Images')['CentOS_7.6']]",
                     
-          "vmScripts": {
-            "scriptsToDownload": [
-                "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
+        "vmScripts": {
+          "scriptsToDownload": [
+            "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
             ],
             "commandToExecute": "[concat('bash startup.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'))]"
           }
@@ -138,7 +115,7 @@
                     "vmSize": "Standard_D2s_v3"
                 },
                 "storageProfile": {
-                    "imageReference": "[variables('NodeimageReference_compute')]",
+                    "imageReference": "[variables('NodeimageReference')]",
                     "osDisk": {
                         "osType": "Linux",
                         "createOption": "FromImage",
@@ -215,7 +192,7 @@
                     "vmSize": "Standard_D2s_v3"
                 },
                 "storageProfile": {
-                    "imageReference": "[variables('NodeimageReference_login')]",
+                    "imageReference": "[variables('NodeimageReference')]",
                     "osDisk": {
                         "osType": "Linux",
                         "createOption": "FromImage",
@@ -292,7 +269,7 @@
                     "vmSize": "Standard_D2s_v3"
                 },
                 "storageProfile": {
-                    "imageReference": "[variables('NodeimageReference_storage')]",
+                    "imageReference": "[variables('NodeimageReference')]",
                     "osDisk": {
                         "osType": "Linux",
                         "createOption": "FromImage",
