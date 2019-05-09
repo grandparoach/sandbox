@@ -8,6 +8,11 @@ adminPassword=${2}
 sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
 setenforce 0
 
+#set a password for root
+echo "root:$adminPassword" | chpasswd
+
+sleep 30
+
 # Disable tty requirement for sudo
 sed -i 's/^Defaults[ ]*requiretty/# Defaults requiretty/g' /etc/sudoers
 
@@ -23,9 +28,6 @@ groupadd -g $HPC_GID $HPC_GROUP
 mkdir -p /share/home
 
 yum -y install nfs-utils
-
-#set a password for root
-echo "root:$adminPassword" | chpasswd
 
 if [ `hostname` == "Login" ];
 then
