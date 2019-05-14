@@ -202,7 +202,52 @@
                             },
                         "diskSizeGB": 30
                     },
-                    "dataDisks": []
+                    "dataDisks": [
+                    {
+                            "lun": 0,
+                            "name": "[concat('Login_DataDisk_0')]",
+                            "createOption": "Empty",
+                            "caching": "None",
+                            "writeAcceleratorEnabled": false,
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                               },
+                            "diskSizeGB": 5
+                        },
+                        {
+                            "lun": 1,
+                            "name": "[concat('Login_DataDisk_1')]",
+                            "createOption": "Empty",
+                            "caching": "None",
+                            "writeAcceleratorEnabled": false,
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                               },
+                            "diskSizeGB": 5
+                        },
+                        {
+                            "lun": 2,
+                            "name": "[concat('Login_DataDisk_2')]",
+                            "createOption": "Empty",
+                            "caching": "None",
+                            "writeAcceleratorEnabled": false,
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                               },
+                            "diskSizeGB": 5
+                        },
+                        {
+                            "lun": 3,
+                            "name": "[concat('Login_DataDisk_3')]",
+                            "createOption": "Empty",
+                            "caching": "None",
+                            "writeAcceleratorEnabled": false,
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                               },
+                            "diskSizeGB": 5
+                        }
+                    ]
                 },
                 "osProfile": {
                     "computerName": "Login",
