@@ -1,0 +1,226 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "CustomImageResourceGroup": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Resource group of the customized disk image"
+            }
+        },
+        "CustomStorageImageName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the customized disk image for the Storage nodes"
+            }
+        },
+        "CustomComputeImageName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the customized disk image for the Compute nodes"
+            }
+        },
+        "CustomLoginImageName": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Name of the customized disk image for the login node"
+            }
+        },
+        "adminUserName": {
+            "type": "string",
+            "metadata": {
+              "description": "User name for the Virtual Machines."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+              "description": "Admin password for the virtual machines"
+            }
+        }
+    },
+    "variables": {
+              
+          "NodeimageReference_login": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomLoginImageName'))]"},
+          "NodeimageReference_compute": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomComputeImageName'))]"},
+          "NodeimageReference_storage": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomStorageImageName'))]"},
+          
+                    
+          "vmScripts": {
+            "scriptsToDownload": [
+                "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
+            ],
+            "commandToExecute": "[concat('bash startup.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'))]"
+          }
+        },
+          
+
+
+
+    
+    "resources": [
+        
+        
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2018-12-01",
+            "name": "LCIVNet",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "192.168.0.0/16"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "private",
+                        "properties": {
+                            "addressPrefix": "192.168.0.0/24",
+                            "delegations": []
+                        }
+                    }
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2018-12-01",
+            "name": "[concat('LCIVNet', '/private')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', 'LCIVNet')]"
+            ],
+            "properties": {
+                "addressPrefix": "192.168.0.0/24",
+                "delegations": []
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-10-01",
+            "name": "[concat('Storage-3')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat('Storage-3-nic'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_D2s_v3"
+                },
+                "storageProfile": {
+                    "imageReference": "[variables('NodeimageReference_storage')]",
+                    "osDisk": {
+                        "osType": "Linux",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                            },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": [
+                        {
+                            "lun": 0,
+                            "name": "[concat('Storage-3_DataDisk_0')]",
+                            "createOption": "Empty",
+                            "caching": "None",
+                            "writeAcceleratorEnabled": false,
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                               },
+                            "diskSizeGB": 5
+                        },
+                        {
+                            "lun": 1,
+                            "name": "[concat('Storage-3_DataDisk_1')]",
+                            "createOption": "Empty",
+                            "caching": "None",
+                            "writeAcceleratorEnabled": false,
+                            "managedDisk": {
+                                "storageAccountType": "Premium_LRS"
+                                },
+                            "diskSizeGB": 5
+                        }
+                    ]
+                },
+                "osProfile": {
+                    "computerName": "[concat('Storage-3')]",
+                    "adminUsername": "[parameters('adminUserName')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('Storage-3-nic'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat('Storage-3/ext')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-3')]"
+            ],
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": "[variables('vmScripts').scriptsToDownload]",
+                "timestamp": 12
+              },
+              "protectedSettings": {
+                "commandToExecute": "[variables('vmScripts').commandToExecute]"
+              }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-12-01",
+            "name": "Storage-3-nic",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+                ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "192.168.0.10",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true,
+                "tapConfigurations": []
+            }
+        }
+    ]
+}
