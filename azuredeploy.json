@@ -395,16 +395,27 @@
                }
             },
 
-            "dataDisks": [{
+            "dataDisks": [
+              {
                 "name": "[concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1))]",
                 "lun": 0,
                 "createOption": "attach",
                 "managedDisk": {
                     "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1)))]"
                 }
-            }]
-            
-
+              },
+              {
+                "lun": 1,
+                "name": "[concat(parameters('vmNamePrefix'),'-optDisk',copyIndex(1))]",
+                "createOption": "Empty",
+                "caching": "None",
+                "writeAcceleratorEnabled": false,
+                "managedDisk": {
+                    "storageAccountType": "Premium_LRS"
+                   },
+                "diskSizeGB": 200
+              }
+          ]
         },
         "networkProfile": {
           "networkInterfaces": [
