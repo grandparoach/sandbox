@@ -2,6 +2,13 @@
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+    "AvailabilityZone": {
+      "type": "int",
+      "defaultValue": 3,
+      "metadata": {
+        "description": "Availability Zone for deployment"
+      }
+    },
     "hostOs": {
       "type": "string",
       "defaultValue": "CentOS_7.6",
@@ -180,11 +187,11 @@
     "linuxConfiguration_password": { },
     "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]",
 
-    "glusterScripts": {
+    "Scripts": {
         "scriptsToDownload": [
-         "https://raw.githubusercontent.com/grandparoach/gluster/Ultra/azuregfs.sh" 
+         "https://raw.githubusercontent.com/grandparoach/sandbox/ultraSSD/formatopt.sh" 
         ],
-        "commandToExecute": "[concat('bash azuregfs.sh ')]"
+        "commandToExecute": "[concat('bash formatopt.sh ')]"
     },
     "GlusterWebAdminScripts": {
       "scriptsToDownload": [
@@ -218,7 +225,7 @@
         "name": "[concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1))]",    
         "type": "Microsoft.Compute/disks",
         "apiVersion": "2018-06-01",
-        "zones": ["3"],
+        "zones": ["parameters('AvailabilityZone')"],
         "location": "[resourceGroup().location]",
         "copy": {
             "name": "diskLoop",
@@ -255,7 +262,7 @@
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
       },
-      "zones": ["3"]
+      "zones": ["parameters('AvailabilityZone')"]
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
@@ -313,7 +320,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "wekajumpbox",
-      "zones": ["3"],
+      "zones": ["parameters('AvailabilityZone')"],
       "location": "[resourceGroup().location]",
       "apiVersion": "2018-06-01",
       "dependsOn": [
@@ -361,7 +368,7 @@
       "apiVersion": "2018-06-01",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(parameters('vmNamePrefix'), copyindex(1))]",
-      "zones": ["3"],
+      "zones": ["parameters('AvailabilityZone')"],
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "gfs",
@@ -429,6 +436,31 @@
             "enabled": "true",
            "storageUri": "[concat('http://',variables('DiagSAName'),'.blob.core.windows.net')]"
           }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex(1), '/extension')]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "gfs-extention",
+        "count": "[parameters('scaleNumber')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', parameters('vmNamePrefix'), copyindex(1))]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+            "fileUris": "[variables('Scripts').scriptsToDownload]"
+          },
+          "protectedSettings": {
+            "commandToExecute": "[concat('bash formatopt.sh')]"  
         }
       }
     }
