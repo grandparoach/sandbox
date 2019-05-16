@@ -1,289 +1,425 @@
 {
-	"$schema": "http://schema.management.azure.com/schemas/2015-01-01-preview/deploymentTemplate.json",
-	"contentVersion": "1.0.0.0",
-	"parameters": {
-		"vmSku": {
-			"defaultValue": "Standard_H16r",
-			"allowedValues": [
-				"Standard_A1",
-				"Standard_A8",
-				"Standard_A9",
-				"Standard_A10",
-				"Standard_A11",
-				"Standard_H16r",
-				"Standard_H16mr"				
-			],
-			"type": "String",
-			"metadata": {
-				"description": "Which instance would you like to deploy to?"
-			}
-		},
-		"vmssName": {
-			"maxLength": 10,
-			"type": "String",
-			"metadata": {
-				"description": "String used as a base for naming resources. Must be 3-10 characters in length and globally unique across Azure. A hash is prepended to this string for some resources, and resource-specific information is appended."
-			}
-		},
-		"instanceCount": {
-			"maxValue": 100,
-			"type": "Int",
-			"metadata": {
-				"description": "Number of VM instances (100 or less)."
-			}
-		},
-		"adminUsername": {
-			"type": "String",
-			"metadata": {
-				"description": "Admin username on all VMs."
-			}
-		},
-		"adminPassword": {
-			"type": "SecureString",
-			"metadata": {
-				"description": "Admin password on all VMs."
-			}
-		}
-	},
-	"variables": {
-		"namingInfix": "[toLower(substring(concat(parameters('vmssName'), uniqueString(resourceGroup().id)), 0, 9))]",
-		"longNamingInfix": "[toLower(parameters('vmssName'))]",
-		"jumpBoxName": "[concat(variables('longNamingInfix'),'jb')]",
-		"jumpBoxSAName": "[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), 'jumpboxsa')), 'jb')]",
-		"jumpBoxOSDiskName": "[concat(variables('jumpBoxName'), 'osdisk')]",
-		"jumpBoxVHDContainerName": "[concat(variables('jumpBoxName'), 'vhd')]",
-		"jumpBoxIPConfigName": "[concat(variables('jumpBoxName'), 'ipconfig')]",
-		"jumpBoxNicName": "[concat(variables('jumpBoxName'), 'nic')]",
-		"storageAccountType": "Standard_LRS",
-		"newStorageAccountSuffix": "[concat(variables('namingInfix'), 'sa')]",
-		"uniqueStringArray": [
-			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '0')))]",
-			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '1')))]",
-			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '2')))]",
-			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '3')))]",
-			"[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'), '4')))]"
-		],
-		"saCount": "[length(variables('uniqueStringArray'))]",
-		"vhdContainerName": "[concat(variables('namingInfix'), 'vhd')]",
-		"osDiskName": "[concat(variables('namingInfix'), 'osdisk')]",
-		"addressPrefix": "10.0.0.0/16",
-		"subnetPrefix": "10.0.0.0/24",
-		"virtualNetworkName": "[concat(variables('namingInfix'), 'vnet')]",
-		"subnetName": "[concat(variables('namingInfix'), 'subnet')]",
-		"vnetID": "[resourceId('Microsoft.Network/virtualNetworks',variables('virtualNetworkName'))]",
-		"subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]",
-		"publicIPAddressName": "[concat(variables('namingInfix'), 'pip')]",
-		"publicIPAddressID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
-		"nicName": "[concat(variables('namingInfix'), 'nic')]",
-		"ipConfigName": "[concat(variables('namingInfix'), 'ipconfig')]",
-		"osType": {
-			"publisher": "OpenLogic",
-			"offer": "CentOS-HPC",
-			"sku": "7.1",
-			"version": "latest"
-		},
-		"imageReference": "[variables('osType')]",
-		"computeApiVersion": "2016-03-30",
-		"networkApiVersion": "2016-03-30",
-		"storageApiVersion": "2015-06-15"
-	},
-	"resources": [{
-		"type": "Microsoft.Network/virtualNetworks",
-		"name": "[variables('virtualNetworkName')]",
-		"apiVersion": "[variables('networkApiVersion')]",
-		"location": "[resourceGroup().location]",
-		"properties": {
-			"addressSpace": {
-				"addressPrefixes": [
-					"[variables('addressPrefix')]"
-				]
-			},
-			"subnets": [{
-				"name": "[variables('subnetName')]",
-				"properties": {
-					"addressPrefix": "[variables('subnetPrefix')]"
-				}
-			}]
-		}
-	}, {
-		"type": "Microsoft.Storage/storageAccounts",
-		"name": "[variables('jumpBoxSAName')]",
-		"apiVersion": "[variables('storageApiVersion')]",
-		"location": "[resourceGroup().location]",
-		"properties": {
-			"accountType": "Premium_LRS"
-		}
-	}, {
-		"type": "Microsoft.Storage/storageAccounts",
-		"name": "[concat(variables('uniqueStringArray')[copyIndex()], variables('newStorageAccountSuffix'))]",
-		"apiVersion": "[variables('storageApiVersion')]",
-		"location": "[resourceGroup().location]",
-		"copy": {
-			"name": "storageLoop",
-			"count": "[variables('saCount')]"
-		},
-		"properties": {
-			"accountType": "[variables('storageAccountType')]"
-		}
-	}, {
-		"type": "Microsoft.Network/publicIPAddresses",
-		"name": "[variables('publicIPAddressName')]",
-		"apiVersion": "[variables('networkApiVersion')]",
-		"location": "[resourceGroup().location]",
-		"properties": {
-			"publicIPAllocationMethod": "Dynamic",
-			"dnsSettings": {
-				"domainNameLabel": "[variables('longNamingInfix')]"
-			}
-		}
-	}, {
-		"type": "Microsoft.Network/networkInterfaces",
-		"name": "[variables('jumpBoxNicName')]",
-		"apiVersion": "[variables('networkApiVersion')]",
-		"location": "[resourceGroup().location]",
-		"properties": {
-			"ipConfigurations": [{
-				"name": "[variables('jumpBoxIPConfigName')]",
-				"properties": {
-					"privateIPAllocationMethod": "Dynamic",
-					"publicIPAddress": {
-						"id": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]"
-					},
-					"subnet": {
-						"id": "[variables('subnetRef')]"
-					}
-				}
-			}]
-		},
-		"dependsOn": [
-			"[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]",
-			"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-		]
-	}, {
-		"type": "Microsoft.Compute/virtualMachines",
-		"name": "[variables('jumpBoxName')]",
-		"apiVersion": "[variables('computeApiVersion')]",
-		"location": "[resourceGroup().location]",
-		"properties": {
-			"hardwareProfile": {
-				"vmSize": "Standard_DS14_v2"
-			},
-			"osProfile": {
-				"computerName": "[variables('jumpBoxName')]",
-				"adminUsername": "[parameters('adminUsername')]",
-				"adminPassword": "[parameters('adminPassword')]"
-			},
-			"storageProfile": {
-				"imageReference": "[variables('imageReference')]",
-				"osDisk": {
-					"name": "[variables('jumpBoxOSDiskName')]",
-					"vhd": {
-						"uri": "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/',variables('jumpBoxOSDiskName'),'.vhd')]"
-					},
-					"caching": "ReadWrite",
-					"createOption": "FromImage"
-				},
-                "dataDisks": [ 
-            { 
-            "name": "datadisk0", 
-            "diskSizeGB": 1023, 
-            "lun": 0, 
-            "vhd": { 
-              "Uri":  "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/datadisk0.vhd')]" 
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "hostOs": {
+      "type": "string",
+      "defaultValue": "CentOS_7.6",
+      "allowedValues": [
+        "CentOS_7.6",  
+        "RHEL_7.4",
+        "RHEL_7.5"
+      ],
+      "metadata": {
+        "description": "OS to install on the host system"
+      }
+    },
+    "wekajumpbox": {
+      "type": "string",
+      "defaultValue": "Standard_D4s_v3",
+      "allowedValues": [
+        "Standard_D16s_v3",
+        "Standard_D4s_v3"
+      ],
+      "metadata": {
+        "description": "sku to use for the monitor VM for Web Administration"
+      }
+    },
+    "scaleNumber": {
+      "type": "int",
+      "defaultValue": 6,
+      "allowedValues": [
+        4,
+        6,
+        8,
+        12,
+        16
+      ],
+      "metadata": {
+        "description": "Number of nodes in the gluster file system"
+      }
+    },
+    "existingVNetName": {
+      "type": "string",
+      "metadata": {
+        "description": "name of existing Virtual Network"
+      }
+    },
+    "existingVNetResourceGroup": {
+      "type": "string",
+      "metadata": {
+        "description": "name of Resource Group for existing Virtual Network"
+      }
+    },
+    "existingSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "name of existing Virtual Network"
+      }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "ssh user name"
+      }
+    },
+    "authenticationType": {
+      "type": "string",
+      "defaultValue": "password",
+      "allowedValues": [
+        "password",
+        "sshPublicKey"
+      ],
+      "metadata": {
+        "description": "Authentication type for the virtual machines"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Admin password for the virtual machines"
+      }
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
+      }
+    },
+    "vmSize": {
+      "type": "string",
+      "defaultValue": "Standard_D16s_v3",
+      "allowedValues": [
+        "Standard_D2s_v3",
+        "Standard_D4s_v3",
+        "Standard_D8s_v3",
+        "Standard_D16s_v3",
+        "Standard_D32s_v3",
+        "Standard_D64s_v3",
+        "Standard_E2s_v3",
+        "Standard_E4s_v3",
+        "Standard_E8s_v3",
+        "Standard_E16s_v3",
+        "Standard_E32s_v3",
+        "Standard_E64s_v3",
+        "Standard_E64is_v3"
+      ],
+      "metadata": {
+        "description": "sku to use for the gluster hosts"
+      }
+    },
+    "vmNamePrefix": {
+      "type": "string",
+      "defaultValue": "wekahost",
+      "metadata": {
+        "description": "VM name prefix, a number will be appended for each node"
+      }
+    },
+    "dataDiskSize": {
+      "type": "int",
+      "defaultValue": 2048,
+      "allowedValues": [
+        4,
+        8,
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024,
+        2048,
+        4095
+      ],
+      "metadata": {
+        "description": "The size of the datadisks."
+      }
+    },
+    "nbDataDisks": {
+      "type": "int",
+      "defaultValue": 1,
+      "metadata": {
+        "description": "The number of disks to attach to each server."
+      }
+    },
+    "diskIOPSReadWrite": {
+      "type": "int",
+      "defaultValue": 80000,
+      "metadata": {
+            "description": "Data Disk IOPS value representing the maximum IOPS that the disk can achieve."
+      }  
+    },
+    "diskMbpsReadWrite": {
+      "type": "int",
+      "defaultValue": 800,
+      "metadata": {
+            "description": "Data Disk MBps value representing the maximum throughput that the disk can achieve."
+      }
+    }
+  },
+  "variables": {
+    "nicName": "nic",
+    "DiagSAName": "[concat(uniqueString(subscription().id, resourceGroup().id), 'diag')]",
+    "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
+    "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]",
+    "imageReference": "[variables('computeImages')[parameters('hostOS')]]",
+    "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
+    "linuxConfiguration_sshPublicKey": {
+      "disablePasswordAuthentication": "true",
+      "ssh": {
+        "publicKeys": [
+          {
+            "path": "[variables('sshKeyPath')]",
+            "keyData": "[parameters('sshPublicKey')]"
+          }
+        ]
+      }
+    },
+    "linuxConfiguration_password": { },
+    "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]",
+
+    "glusterScripts": {
+        "scriptsToDownload": [
+         "https://raw.githubusercontent.com/grandparoach/gluster/Ultra/azuregfs.sh" 
+        ],
+        "commandToExecute": "[concat('bash azuregfs.sh ')]"
+    },
+    "GlusterWebAdminScripts": {
+      "scriptsToDownload": [
+        "https://raw.githubusercontent.com/grandparoach/gluster/Ultra/webadmin.sh" 
+      ],
+      "commandToExecute": "[concat('bash webadmin.sh ')]"
+    },
+    "computeImages": {
+      "CentOS_7.6": {
+          "publisher": "OpenLogic",
+          "offer": "CentOS",
+          "sku": "7.6",
+          "version": "latest"
+      },
+      "RHEL_7.4": {
+        "publisher": "Redhat",
+        "offer": "RHEL",
+        "sku": "7.4",
+        "version": "latest"
+      },
+      "RHEL_7.5": {
+        "publisher": "Redhat",
+        "offer": "RHEL",
+        "sku": "7-RAW",
+        "version": "latest"
+      }
+    }
+  },
+  "resources": [
+    {
+        "name": "[concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1))]",    
+        "type": "Microsoft.Compute/disks",
+        "apiVersion": "2018-06-01",
+        "zones": ["3"],
+        "location": "[resourceGroup().location]",
+        "copy": {
+            "name": "diskLoop",
+            "count": "[parameters('scaleNumber')]"
+          },
+        "sku": {
+            "name": "UltraSSD_LRS"
+        },
+        "properties": {
+            "creationData": {
+                "createOption": "Empty"
+            },
+            "diskSizeGB": "[parameters('dataDiskSize')]",
+            "diskIOPSReadWrite": "[parameters('diskIOPSReadWrite')]",
+            "diskMBpsReadWrite": "[parameters('diskMBpsReadWrite')]"
+        }       
+    },
+    
+    
+    {
+        "type": "Microsoft.Storage/storageAccounts",
+        "name": "[variables('DiagSAName')]",
+        "location": "[resourceGroup().location]",
+        "apiVersion": "2015-06-15",
+        "properties": {
+          "accountType": "Standard_LRS"
+        }
+      },
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "wekajumpbox-PublicIP",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2018-02-01",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic"
+      },
+      "zones": ["3"]
+    },
+    {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "wekajumpbox-nic",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2018-02-01",
+      "dependsOn": [
+        "[concat('Microsoft.Network/publicIPAddresses/wekajumpbox-PublicIP')]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "wekajumpbox-nic-ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[resourceId('Microsoft.Network/publicIPAddresses','wekajumpbox-PublicIP')]"
               }, 
-            "caching": "ReadWrite", 
-            "createOption": "Empty" 
-            }, 
-            { 
-            "name": "datadisk1", 
-            "diskSizeGB": 1023, 
-            "lun": 1, 
-            "vhd": { 
-              "Uri":  "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/datadisk1.vhd')]"
-              }, 
-            "caching": "ReadWrite", 
-            "createOption": "Empty" 
-            }, 
-            { 
-            "name": "datadisk2", 
-            "diskSizeGB": 1023, 
-            "lun": 2, 
-            "vhd": { 
-              "Uri":  "[concat('http://',variables('jumpBoxSAName'),'.blob.core.windows.net/',variables('jumpBoxVHDContainerName'),'/datadisk2.vhd')]" 
-              }, 
-            "caching": "ReadWrite", 
-            "createOption": "Empty" 
-            } 
+              "subnet": {
+                "id": "[variables('SubnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableAcceleratedNetworking": true
+      }
+    },    
+    {
+      "apiVersion": "2018-02-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[concat(variables('nicName'), copyindex(1))]",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "gfs",
+        "count": "[parameters('scaleNumber')]"
+      },
+      "dependsOn": [
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('SubnetRef')]"
+              }
+            }
+          }
+        ],
+        "enableAcceleratedNetworking": true
+      }
+    },
+
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "wekajumpbox",
+      "zones": ["3"],
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2018-06-01",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkinterfaces/wekajumpbox-nic')]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('wekajumpbox')]"
+        },
+        "osProfile": {
+          "computerName": "wekajumpbox",
+          "adminUsername": "[parameters('adminUserName')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "linuxConfiguration": "[variables('linuxConfiguration')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('imageReference')]",
+          "osDisk": {
+            "caching": "ReadOnly",
+            "createOption": "FromImage",
+             "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+             }
+          },
+          "dataDisks": [ ]
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+               "id": "[resourceId('Microsoft.Network/networkInterfaces','wekajumpbox-nic')]"
+            }
           ]
         },
-			"networkProfile": {
-				"networkInterfaces": [{
-					"id": "[resourceId('Microsoft.Network/networkInterfaces',variables('jumpBoxNicName'))]"
-				}]
-			}
-		},
-		"dependsOn": [
-			"[concat('Microsoft.Storage/storageAccounts/', variables('jumpBoxSAName'))]",
-			"[concat('Microsoft.Network/networkInterfaces/', variables('jumpBoxNicName'))]"
-		]
-	}, {
-		"type": "Microsoft.Compute/virtualMachineScaleSets",
-		"sku": {
-			"name": "[parameters('vmSku')]",
-			"tier": "Standard",
-			"capacity": "[parameters('instanceCount')]"
-		},
-		"name": "[variables('namingInfix')]",
-		"apiVersion": "[variables('computeApiVersion')]",
-		"location": "[resourceGroup().location]",
-		"properties": {
-			"overprovision": "true",
-			"upgradePolicy": {
-				"mode": "Manual"
-			},
-			"virtualMachineProfile": {
-				"storageProfile": {
-					"osDisk": {
-						"vhdContainers": [
-							"[concat('https://', variables('uniqueStringArray')[0], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
-							"[concat('https://', variables('uniqueStringArray')[1], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
-							"[concat('https://', variables('uniqueStringArray')[2], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
-							"[concat('https://', variables('uniqueStringArray')[3], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]",
-							"[concat('https://', variables('uniqueStringArray')[4], variables('newStorageAccountSuffix'), '.blob.core.windows.net/', variables('vhdContainerName'))]"
-						],
-						"name": "[variables('osDiskName')]",
-						"caching": "ReadOnly",
-						"createOption": "FromImage"
-					},
-					"imageReference": "[variables('imageReference')]"
-				},
-				"osProfile": {
-					"computerNamePrefix": "[variables('namingInfix')]",
-					"adminUsername": "[parameters('adminUsername')]",
-					"adminPassword": "[parameters('adminPassword')]"
-				},
-				"networkProfile": {
-					"networkInterfaceConfigurations": [{
-						"name": "[variables('nicName')]",
-						"properties": {
-							"primary": "true",
-							"ipConfigurations": [{
-								"name": "[variables('ipConfigName')]",
-								"properties": {
-									"subnet": {
-										"id": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/', resourceGroup().name, '/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]"
-									}
-								}
-							}]
-						}
-					}]
-				}
-			}
-		},
-		"dependsOn": [
-			"storageLoop",
-			"[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
-		]
-	}]
-}
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+           "storageUri": "[concat('http://',variables('DiagSAName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    },
+    
+    {
+      "apiVersion": "2018-06-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[concat(parameters('vmNamePrefix'), copyindex(1))]",
+      "zones": ["3"],
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "gfs",
+        "count": "[parameters('scaleNumber')]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicName'), copyindex(1))]",
+        "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]",
+        "diskLoop"
+      ],
+      "properties": {  
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "additionalCapabilities" : {
+            "ultraSSDEnabled" : "true"
+        },
+        "osProfile": {
+          "computerName": "[concat(parameters('vmNamePrefix'), copyIndex(1))]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "adminPassword": "[parameters('adminPassword')]",
+          "linuxConfiguration": "[variables('linuxConfiguration')]"
+        },
+        "storageProfile": {
+          "imageReference": "[variables('imageReference')]",
+          "osDisk": {
+            "caching": "ReadOnly",
+            "createOption": "FromImage",
+            "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+               }
+            },
 
+            "dataDisks": [{
+                "name": "[concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1))]",
+                "lun": 0,
+                "createOption": "attach",
+                "managedDisk": {
+                    "id": "[resourceId('Microsoft.Compute/disks/', concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1)))]"
+                }
+            }]
+            
+
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicName'), copyindex(1)))]"
+            }
+          ]
+        },
+        "diagnosticsProfile": {
+          "bootDiagnostics": {
+            "enabled": "true",
+           "storageUri": "[concat('http://',variables('DiagSAName'),'.blob.core.windows.net')]"
+          }
+        }
+      }
+    }
+  ]
+}
