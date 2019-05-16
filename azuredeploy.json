@@ -225,7 +225,7 @@
         "name": "[concat(parameters('vmNamePrefix'),'-dataDisk',copyIndex(1))]",    
         "type": "Microsoft.Compute/disks",
         "apiVersion": "2018-06-01",
-        "zones": ["parameters('AvailabilityZone')"],
+        "zones": "[parameters('AvailabilityZone')]",
         "location": "[resourceGroup().location]",
         "copy": {
             "name": "diskLoop",
@@ -262,7 +262,7 @@
       "properties": {
         "publicIPAllocationMethod": "Dynamic"
       },
-      "zones": ["parameters('AvailabilityZone')"]
+      "zones": "[parameters('AvailabilityZone')]"
     },
     {
       "type": "Microsoft.Network/networkInterfaces",
@@ -320,7 +320,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines",
       "name": "wekajumpbox",
-      "zones": ["parameters('AvailabilityZone')"],
+      "zones": "[parameters('AvailabilityZone')]",
       "location": "[resourceGroup().location]",
       "apiVersion": "2018-06-01",
       "dependsOn": [
@@ -368,7 +368,7 @@
       "apiVersion": "2018-06-01",
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[concat(parameters('vmNamePrefix'), copyindex(1))]",
-      "zones": ["parameters('AvailabilityZone')"],
+      "zones": "[parameters('AvailabilityZone')]",
       "location": "[resourceGroup().location]",
       "copy": {
         "name": "gfs",
