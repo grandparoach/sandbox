@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+      "parameters": {
+        "CustomImageResourceGroup": { "value": "LCI" },
+        "CustomStorageImageName": { "value": "Storage-image" },
+        "CustomComputeImageName": { "value": "Compute-image" },
+        "CustomLoginImageName": { "value": "Login-image" },
+        "adminUserName": { "value": "lci" },
+        "adminPassword": { "value": "Osulci2019" }
+      }
+}
