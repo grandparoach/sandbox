@@ -52,7 +52,7 @@ configure_ssh() {
     index=0    
     while [ $index -lt $(($nodecount)) ]; do
 
-        sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@$clusterprefix '00000' $index -p 22
+        sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@${clusterprefix}00000${index} -p 22
         let index++
     done
     
