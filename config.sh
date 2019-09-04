@@ -25,11 +25,13 @@ echo "$adminUserName ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 format_disks() {
 mkdir /mnt/resource/opt
-cp /opt/* /mnt/resource/opt   
+cp -R /opt/ /mnt/resource/opt/   
 fdisk /dev/sdc << EOF
 n
 p
 1
+
+
 t
 83
 w
@@ -40,7 +42,7 @@ mkfs -t ext4 /dev/sdc1
 echo "/dev/sdc1 /opt ext4 defaults,nofail 0 2" >> /etc/fstab
 
 mount -a
-cp /mnt/resource/opt/* /opt
+cp -R /mnt/resource/opt/ /opt/
 
 }
 
