@@ -157,7 +157,7 @@
       "scriptsToDownload": [
         "https://raw.githubusercontent.com/grandparoach/sandbox/weka/config.sh"
       ],
-      "commandToExecute": "[concat('bash config.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'))]"
+      "commandToExecute": "[concat('bash config.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'), ' ', parameters('ClusterPrefix'), ' ', parameters('WekaNodeCount'))]"
     }
   },  
   "resources": [
@@ -276,15 +276,27 @@
               "linuxConfiguration": "[variables('linuxConfiguration')]"
             },
             "storageProfile": {
-              "imageReference": "[variables('WekaNodeimageReference')]",  
               "osDisk": {
-                "caching": "ReadOnly",
-                "createOption": "FromImage",
-                "managedDisk": {
-                  "storageAccountType": "Premium_LRS"
-              }
-            }
-          },
+                  "createOption": "FromImage",
+                  "caching": "ReadOnly",
+                  "managedDisk": {
+                      "storageAccountType": "Premium_LRS"
+                  }
+              },
+              "imageReference": "[variables('WekaNodeimageReference')]", 
+              "dataDisks": [
+                  {
+                      "lun": 0,
+                      "createOption": "Empty",
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                          "storageAccountType": "Premium_LRS"
+                      },
+                      "diskSizeGB": 1023
+                  }
+              ]
+          },            
           "extensionProfile": {
             "extensions": [
               {
