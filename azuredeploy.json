@@ -155,9 +155,9 @@
     "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]",
     "vmScripts": {
       "scriptsToDownload": [
-        "https://raw.githubusercontent.com/grandparoach/HB_HC_MPI/master/loaddrivers.sh"
+        "https://raw.githubusercontent.com/grandparoach/sandbox/weka/config.sh"
       ],
-      "commandToExecute": "[concat('bash loaddrivers.sh ')]"
+      "commandToExecute": "[concat('bash config.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'))]"
     }
   },  
   "resources": [
