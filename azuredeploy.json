@@ -294,6 +294,36 @@
                           "storageAccountType": "Premium_LRS"
                       },
                       "diskSizeGB": 1023
+                  },
+                {
+                      "lun": 1,
+                      "createOption": "Empty",
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                          "storageAccountType": "Premium_LRS"
+                      },
+                      "diskSizeGB": 8192
+                  },
+                {
+                      "lun": 2,
+                      "createOption": "Empty",
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                          "storageAccountType": "Premium_LRS"
+                      },
+                      "diskSizeGB": 8192
+                  },
+                {
+                      "lun": 3,
+                      "createOption": "Empty",
+                      "caching": "None",
+                      "writeAcceleratorEnabled": false,
+                      "managedDisk": {
+                          "storageAccountType": "Premium_LRS"
+                      },
+                      "diskSizeGB": 8192
                   }
               ]
           },            
