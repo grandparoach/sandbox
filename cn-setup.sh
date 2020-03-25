@@ -48,7 +48,7 @@ mkdir -p /home/$user2/.ssh
 
 #ssh-keygen -t rsa -f /share/home/$HPC_USER/.ssh/id_rsa -q -P ""
         
-echo "$user1_sshkey > /home/$user1/.ssh/authorized_keys
+echo "$user1_sshkey" > /home/$user1/.ssh/authorized_keys
 
 echo "Host *" > /home/$user1/.ssh/config
 echo "    StrictHostKeyChecking no" >> /home/$user1/.ssh/config
@@ -64,7 +64,7 @@ chmod 600 /home/$user1/.ssh/id_rsa
 chmod 644 /home/$user1/.ssh/id_rsa.pub
 
 
-echo "$user2_sshkey > /home/$user2/.ssh/authorized_keys
+echo "$user2_sshkey" > /home/$user2/.ssh/authorized_keys
 
 echo "Host *" > /home/$user2/.ssh/config
 echo "    StrictHostKeyChecking no" >> /home/$user2/.ssh/config
