@@ -156,7 +156,7 @@
         "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]",
         "vmScripts": {
             "scriptsToDownload": [
-                "https://raw.githubusercontent.com/grandparoach/simpleMPIPOC/Cat/cn-setup.sh"
+                "https://raw.githubusercontent.com/grandparoach/sandbox/proteus/cn-setup.sh"
             ],
         "commandToExecute": "[concat('bash cn-setup.sh ', parameters('adminUserName'),' ', parameters('user1Name'),' ', parameters('user1UID'),' ', parameters('user1sshPublicKey'),' ', parameters('user2Name'),' ', parameters('user2UID'),' ', parameters('user2sshPublicKey'))]"
         }
