@@ -1,8 +1,6 @@
 #!/bin/bash
 set -x
 
-yum -y install nfs-utils
-
 mount -a
 
 chmod 777 /tmp
