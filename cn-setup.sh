@@ -11,10 +11,10 @@ chmod 777 /u
 adminUserName=${1}
 user1=${2}
 user1_UID=${3}
-user1_sshkey=${4}
+user1_sshkey=${4} ${5} ${6}
 user2=${5}
 user2_UID=${6}
-user2_sshkey=${7}
+user2_sshkey=${9} ${10} ${11}
 
 #disable_selinux
 sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
