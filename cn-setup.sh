@@ -60,8 +60,6 @@ chown -R $user1:$PROTEUS_GROUP /home/$user1
 chmod 700 /home/$user1/.ssh
 chmod 644 /home/$user1/.ssh/config
 chmod 644 /home/$user1/.ssh/authorized_keys
-chmod 600 /home/$user1/.ssh/id_rsa
-chmod 644 /home/$user1/.ssh/id_rsa.pub
 
 
 echo "$user2_sshkey" > /home/$user2/.ssh/authorized_keys
@@ -76,6 +74,4 @@ chown -R $user2:$PROTEUS_GROUP /home/$user2
 chmod 700 /home/$user2/.ssh
 chmod 644 /home/$user2/.ssh/config
 chmod 644 /home/$user2/.ssh/authorized_keys
-chmod 600 /home/$user2/.ssh/id_rsa
-chmod 644 /home/$user2/.ssh/id_rsa.pub
 
