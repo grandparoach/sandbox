@@ -25,10 +25,18 @@
         "NodeCount": {
             "type": "int",
             "metadata": {
-            "description": "Number of VM instances for Compute Node Scaleset (100 or less)."
+            "description": "Number of VM instances for Compute Nodes"
             },
             "defaultValue": 2,
-            "maxValue": 100
+            "maxValue": 999
+        },
+        "StartingIndex": {
+            "type": "int",
+            "metadata": {
+            "description": "Staring number for new batch."
+            },
+            "defaultValue": 1,
+            "maxValue": 999
         },
         "AVSet": {
             "defaultValue": "PROT02",
@@ -43,7 +51,7 @@
         },
         "authenticationType": {
             "type": "string",
-            "defaultValue": "password",
+            "defaultValue": "sshPublicKey",
             "allowedValues": [
                 "password",
                 "sshPublicKey"
@@ -54,54 +62,12 @@
         },
         "adminPassword": {
             "type": "securestring",
-            "defaultValue": "",
+            "defaultValue": "placeholder",
             "metadata": {
                 "description": "Admin password for the virtual machines"
             }
         },
         "sshPublicKey": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
-            }
-        },
-        "user1Name": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "User name for the Virtual Machine."
-            }
-        },
-        "user1UID": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "User name for the Virtual Machine."
-            }
-        },
-        "user1sshPublicKey": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
-            }
-        },
-        "user2Name": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "User name for the Virtual Machine."
-            }
-        },
-        "user2UID": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "User name for the Virtual Machine."
-            }
-        },
-        "user2sshPublicKey": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
@@ -166,15 +132,17 @@
             "type": "Microsoft.Storage/storageAccounts",
             "name": "[variables('DiagSAName')]",
             "location": "[resourceGroup().location]",
-            "apiVersion": "2015-06-15",
-            "properties": {
-                "accountType": "Standard_LRS"
-            }
+            "apiVersion": "2019-04-01",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2",
+            "properties": {}
         },
         {
             "apiVersion": "2018-04-01",
             "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('vmPrefix'), '-nic', padLeft(copyindex(1), 3, '0'))]",
+            "name": "[concat(parameters('vmPrefix'), '-nic', padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
             "location": "[resourceGroup().location]",
             "copy": {
                 "name": "NodeNicCopy",
@@ -198,13 +166,14 @@
         {
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2019-07-01",
-            "name": "[concat(parameters('vmPrefix'), padLeft(copyindex(1), 3, '0'))]",
+            "name": "[concat(parameters('vmPrefix'), padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
             "location": "[resourceGroup().location]",
             "tags": {
                 "platformsettings.host_environment.disablehyperthreading": "true"
             },
             "dependsOn": [  
-                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmPrefix'), '-nic', padLeft(copyindex(1), 3, '0'))]"
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmPrefix'), '-nic', padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]"
             ],
             "copy": {
               "name": "VmCopy",
@@ -234,7 +203,7 @@
                 },
 
                 "osProfile": {
-                    "computerName": "[concat(parameters('vmPrefix'), padLeft(copyindex(1), 3, '0'))]",
+                    "computerName": "[concat(parameters('vmPrefix'), padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
                     "adminUsername": "[parameters('adminUserName')]",
                     "adminPassword": "[parameters('adminPassword')]",
                     "linuxConfiguration": "[variables('linuxConfiguration')]"
@@ -242,7 +211,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                           "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmPrefix'), '-nic', padLeft(copyindex(1), 3, '0')))]"
+                           "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmPrefix'), '-nic', padLeft(copyindex(parameters('StartingIndex')), 3, '0')))]"
                         }
                     ]
                 },
@@ -253,29 +222,7 @@
                     }
                 }
             }
-        },
-        {
-            "apiVersion": "2019-07-01",
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(parameters('vmPrefix'), padLeft(copyindex(1), 3, '0'), '/init')]",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('vmPrefix'), padLeft(copyindex(1), 3, '0')))]"
-            ],
-            "copy": {
-                "name": "computeNodeExtensionsCopy",
-                "count": "[parameters('NodeCount')]"
-            },
-            "properties": {
-                "publisher": "Microsoft.Azure.Extensions",
-                "type": "CustomScript",
-                "typeHandlerVersion": "2.0",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": "[variables('vmScripts').scriptsToDownload]",
-                    "commandToExecute": "[variables('vmScripts').commandToExecute]"
-                }
-            }
         }
+        
     ]
 }
