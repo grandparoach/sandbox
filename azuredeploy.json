@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "VMPrefix": {
-            "defaultValue": "prot007",
+            "defaultValue": "cn",
             "type": "String"
         },
         "CompNodeVMsku": {
@@ -62,14 +62,14 @@
         },
         "adminPassword": {
             "type": "securestring",
-            "defaultValue": "placeholder",
+            "defaultValue": "Azure@Rocks2020",
             "metadata": {
                 "description": "Admin password for the virtual machines"
             }
         },
         "sshPublicKey": {
             "type": "string",
-            "defaultValue": "",
+            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArYpiq5E9PcoYryZ5MJheIZ7zkrOIDvKsow45VTaoUZZ/kNqjfSmHK1HQF6DhJDwUPG0c0GT4r2VR8BgUc5a37ZRCrFvLdPqgEwcfUno7SUVcmn/WCtPEhKUBOQDZnHkMj/syBmlGGznTMV71EOXmb2Y+8nxtAeP3YhStUncvb72eLpxSfijH4SkB6kLePetw9sKqjpGfRfFcWZrOyiDP+cw/FleZyodIQR1v3VZApddkj+HQxjhE0EK2HZ9sozDxKCihRUXPWQMWFhLJNfha5TYlMvofXUXWwNVxCV0zmB2MzsZuwiSoTT1jn6+JPX71zWqxRH3hggd5ZyuyMkpRCw== snpsroot",
             "metadata": {
                 "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
             }
