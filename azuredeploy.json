@@ -44,7 +44,7 @@
         },
         "adminUserName": {
             "type": "string",
-            "defaultValue": "",
+            "defaultValue": "snpsroot",
             "metadata": {
                 "description": "User name for the Virtual Machine."
             }
@@ -80,21 +80,21 @@
         },
         "existingVNetName": {
             "type": "string",
-            "defaultValue": "POC-Network",
+            "defaultValue": "PRT-vnet",
             "metadata": {
                 "description": "name of existing Virtual Network"
             }
         },
         "existingVNetResourceGroup": {
             "type": "string",
-            "defaultValue": "POC-ResourceGroup",
+            "defaultValue": "prot02",
             "metadata": {
                 "description": "name of Resource Group for existing Virtual Network"
             }
         },
         "existingSubnetName": {
             "type": "string",
-            "defaultValue": "POC-Subnet",
+            "defaultValue": "sn-computelarge",
             "metadata": {
                 "description": "name of existing Virtual Network"
             }
