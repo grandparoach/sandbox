@@ -36,9 +36,9 @@
     },
     "imageResourceID": {
       "type": "string",
-      "defaultValue": "",
+      "defaultValue": "/subscriptions/<SubID>/resourceGroups/<RGName>/providers/Microsoft.Compute/galleries/<GalleryName>/images/<imageName>",
       "metadata": {
-        "description": "Resource ID of customized disk image. Must be in the form /subscriptions/<SubID>/resourceGroups/<RGName>/providers/Microsoft.Compute/galleries/<GalleryName>/images/<imageName> "
+        "description": "Resource ID of customized disk image."
       }
     },
     "computeNodeCount": {
