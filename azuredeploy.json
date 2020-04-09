@@ -1,223 +1,194 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "VMPrefix": {
-            "defaultValue": "cn",
-            "type": "String"
-        },
-        "CompNodeVMsku": {
-            "type": "string",
-            "defaultValue": "Standard_E64s_v4",
-            "allowedValues": [
-                "Standard_E16s_v4",
-                "Standard_E64s_v4",
-                "Standard_HB60rs",
-                "Standard_HC44rs",
-                "Standard_E64as_v4",
-                "Standard_E48s_v4",
-                "Standard_E48as_v4"
-            ],
-            "metadata": {
-                "description": "Instance type to use for the compute nodes"
-            }
-        },
-        "NodeCount": {
-            "type": "int",
-            "metadata": {
-            "description": "Number of VM instances for Compute Nodes"
-            },
-            "defaultValue": 2,
-            "maxValue": 999
-        },
-        "StartingIndex": {
-            "type": "int",
-            "metadata": {
-            "description": "Staring number for new batch."
-            },
-            "defaultValue": 1,
-            "maxValue": 999
-        },
-        "AVSet": {
-            "defaultValue": "PROT02",
-            "type": "String"
-        },
-        "adminUserName": {
-            "type": "string",
-            "defaultValue": "snpsroot",
-            "metadata": {
-                "description": "User name for the Virtual Machine."
-            }
-        },
-        "authenticationType": {
-            "type": "string",
-            "defaultValue": "sshPublicKey",
-            "allowedValues": [
-                "password",
-                "sshPublicKey"
-             ],
-            "metadata": {
-                "description": "Authentication type for the virtual machines"
-            }
-        },
-        "adminPassword": {
-            "type": "securestring",
-            "defaultValue": "Azure@Rocks2020",
-            "metadata": {
-                "description": "Admin password for the virtual machines"
-            }
-        },
-        "sshPublicKey": {
-            "type": "string",
-            "defaultValue": "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEArYpiq5E9PcoYryZ5MJheIZ7zkrOIDvKsow45VTaoUZZ/kNqjfSmHK1HQF6DhJDwUPG0c0GT4r2VR8BgUc5a37ZRCrFvLdPqgEwcfUno7SUVcmn/WCtPEhKUBOQDZnHkMj/syBmlGGznTMV71EOXmb2Y+8nxtAeP3YhStUncvb72eLpxSfijH4SkB6kLePetw9sKqjpGfRfFcWZrOyiDP+cw/FleZyodIQR1v3VZApddkj+HQxjhE0EK2HZ9sozDxKCihRUXPWQMWFhLJNfha5TYlMvofXUXWwNVxCV0zmB2MzsZuwiSoTT1jn6+JPX71zWqxRH3hggd5ZyuyMkpRCw== snpsroot",
-            "metadata": {
-                "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
-            }
-        },
-        "galleries_SharedImage_externalid": {
-            "defaultValue": "/subscriptions/97f10d4d-70b2-4329-99dc-558725463ef8/resourceGroups/image-upload/providers/Microsoft.Compute/galleries/SharedImage",
-            "type": "String"
-        },
-        "existingVNetName": {
-            "type": "string",
-            "defaultValue": "PRT-vnet",
-            "metadata": {
-                "description": "name of existing Virtual Network"
-            }
-        },
-        "existingVNetResourceGroup": {
-            "type": "string",
-            "defaultValue": "prot02",
-            "metadata": {
-                "description": "name of Resource Group for existing Virtual Network"
-            }
-        },
-        "existingSubnetName": {
-            "type": "string",
-            "defaultValue": "sn-computelarge",
-            "metadata": {
-                "description": "name of existing Virtual Network"
-            }
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "ClusterPrefix": {
+      "defaultValue": "cn",
+      "type": "string",
+      "metadata": {
+        "description": "The name of the cluster nodes"
+      }
     },
-    "variables": {
-        "longNamingInfix": "[toLower(parameters('vmPrefix'))]",
-        "newStorageAccountSuffix": "[concat(variables('longNamingInfix'), 'sa')]",
-        "DiagSAName": "[concat(uniqueString(concat(resourceGroup().id, variables('newStorageAccountSuffix'))), 'diag')]",
-        "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
-        "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]",
-        "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",    
-        "linuxConfiguration_sshPublicKey": {
-            "disablePasswordAuthentication": "true",
-            "ssh": {
-                "publicKeys": [
-                    {
-                    "path": "[variables('sshKeyPath')]",
-                    "keyData": "[parameters('sshPublicKey')]"
-                    }
-                ]
-            }
-        },
-        "linuxConfiguration_password": { },
-        "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]"
-        
+    "CompNodeVMsku": {
+      "type": "string",
+      "defaultValue": "Standard_E2s_v3",
+      "allowedValues": [
+        "Standard_E2s_v3",
+        "Standard_E4s_v3",
+        "Standard_E8s_v3",
+        "Standard_E16s_v3",
+        "Standard_E32s_v3",
+        "Standard_D2s_v3",
+        "Standard_D4s_v3",
+        "Standard_D8s_v3",
+        "Standard_D16s_v3",
+        "Standard_D32s_v3",
+        "Standard_D64s_v3",
+        "Standard_F4s_v2",
+        "Standard_F8s_v2",
+        "Standard_F16s_v2",
+        "Standard_F32s_v2",
+        "Standard_F64s_v2"
+      ],
+      "metadata": {
+        "description": "Instance type to use for the compute nodes"
+      }
     },
-    "resources": [
-        {
-            "type": "Microsoft.Storage/storageAccounts",
-            "name": "[variables('DiagSAName')]",
-            "location": "[resourceGroup().location]",
-            "apiVersion": "2019-04-01",
-            "sku": {
-                "name": "Standard_LRS"
-            },
-            "kind": "StorageV2",
-            "properties": {}
-        },
-        {
-            "apiVersion": "2018-04-01",
-            "type": "Microsoft.Network/networkInterfaces",
-            "name": "[concat(parameters('vmPrefix'), '-nic', padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
-            "location": "[resourceGroup().location]",
-            "copy": {
-                "name": "NodeNicCopy",
-                "count": "[parameters('NodeCount')]"
-            },
-            "properties": {
-                "ipConfigurations": [
-                {
-                "name": "computeNodeIp",
-                    "properties": {
-                        "privateIPAllocationMethod": "Dynamic",
-                        "subnet": {
-                            "id": "[variables('SubnetRef')]"
-                        }
-                    }
-                }
-                ],
-                "enableAcceleratedNetworking": true
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2019-07-01",
-            "name": "[concat(parameters('vmPrefix'), padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
-            "location": "[resourceGroup().location]",
-            "tags": {
+    "imageResourceID": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Resource ID of customized disk image"
+      }
+    },
+    "computeNodeCount": {
+      "type": "int",
+      "metadata": {
+        "description": "Number of VM instances for Compute Node Scaleset (100 or less)."
+      },
+      "defaultValue": 64,
+      "maxValue": 300
+    },
+    "adminUserName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "User name for the Virtual Machine."
+      }
+    },
+    "authenticationType": {
+      "type": "string",
+      "defaultValue": "password",
+      "allowedValues": [
+        "password",
+        "sshPublicKey"
+      ],
+      "metadata": {
+        "description": "Authentication type for the virtual machines"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "defaultValue": "Azure@Rocks2020",
+      "metadata": {
+        "description": "Admin password for the virtual machines"
+      }
+    },
+    "sshPublicKey": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "SSH public key that will be included on all nodes. The OpenSSH public key can be generated with tools like ssh-keygen on Linux or OS X."
+      }
+    },
+    "existingVNetName": {
+      "type": "string",
+      "defaultValue": "POC-Network",
+      "metadata": {
+        "description": "name of existing Virtual Network"
+      }
+    },
+    "existingVNetResourceGroup": {
+      "type": "string",
+       "defaultValue": "POC-ResourceGroup",
+      "metadata": {
+        "description": "name of Resource Group for existing Virtual Network"
+      }
+    },
+    "existingSubnetName": {
+      "type": "string",
+      "defaultValue": "POC-Subnet",
+      "metadata": {
+        "description": "name of existing Virtual Network"
+      }
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "vnetID": "[resourceId(parameters('existingVNetResourceGroup'), 'Microsoft.Network/virtualNetworks', parameters('existingVNetName'))]",
+    "SubnetRef": "[concat(variables('vnetID'),'/subnets/', parameters('existingSubnetName'))]",
+    
+    "NodeipConfigName": "[concat(parameters('ClusterPrefix'), 'ipconfig')]",
+    "NodenicName": "[concat(parameters('ClusterPrefix'), 'nic')]",
+    "sshKeyPath": "[concat('/home/',parameters('adminUserName'),'/.ssh/authorized_keys')]",
+    "linuxConfiguration_sshPublicKey": {
+      "disablePasswordAuthentication": "true",
+      "ssh": {
+        "publicKeys": [
+          {
+            "path": "[variables('sshKeyPath')]",
+            "keyData": "[parameters('sshPublicKey')]"
+          }
+        ]
+      }
+    },
+    "linuxConfiguration_password": { },
+    "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]"
+    
+  },  
+  "resources": [
+    {
+        "type": "Microsoft.Compute/virtualMachineScaleSets",
+        "name": "[parameters('ClusterPrefix')]",
+        "location": "[variables('location')]",
+        "apiVersion": "2019-07-01",
+        "tags": {
                 "platformsettings.host_environment.disablehyperthreading": "true"
-            },
-            "dependsOn": [  
-                "[concat('Microsoft.Network/networkInterfaces/', parameters('vmPrefix'), '-nic', padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
-                "[concat('Microsoft.Storage/storageAccounts/', variables('DiagSAName'))]"
-            ],
-            "copy": {
-              "name": "VmCopy",
-              "count": "[parameters('NodeCount')]"
-            },
-            "properties": {
-                "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('AVSet'))]"
-                },
-                "hardwareProfile": {
-                    "vmSize": "[parameters('CompNodeVMsku')]"
-                },
-                "storageProfile": {                    
-                    "imageReference": {
-                        "id": "[concat(parameters('galleries_SharedImage_externalid'), '/images/snps-proteusimg')]"
-                    },
-                    "osDisk": {
-                        "osType": "Linux",
-                        "createOption": "FromImage",
-                        "caching": "ReadWrite",
-                        "managedDisk": {
-                            "storageAccountType": "Premium_LRS"
-                        },
-                        "diskSizeGB": 30
-                    },
-                    "dataDisks": []
-                },
-
-                "osProfile": {
-                    "computerName": "[concat(parameters('vmPrefix'), padLeft(copyindex(parameters('StartingIndex')), 3, '0'))]",
-                    "adminUsername": "[parameters('adminUserName')]",
-                    "adminPassword": "[parameters('adminPassword')]",
-                    "linuxConfiguration": "[variables('linuxConfiguration')]"
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                           "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(parameters('vmPrefix'), '-nic', padLeft(copyindex(parameters('StartingIndex')), 3, '0')))]"
+        },
+        "sku": {
+          "name": "[parameters('CompNodeVMsku')]",
+          "tier": "Standard",
+          "capacity": "[parameters('computeNodeCount')]"
+        },
+        "dependsOn": [ ],
+        "properties": {
+          "overprovision": "false",
+          "singlePlacementGroup": "false",
+          "upgradePolicy": {
+            "mode": "Manual"
+          },
+          "virtualMachineProfile": {
+            "networkProfile": {
+              "networkInterfaceConfigurations": [
+                {
+                  "name": "[variables('NodenicName')]",
+                  "properties": {
+                    "primary": "true",
+                    "enableAcceleratedNetworking": true,
+                    "ipConfigurations": [
+                      {
+                        "name": "[variables('NodeipConfigName')]",
+                        "properties": {
+                          "subnet": {
+                              "id": "[variables('SubnetRef')]"
+                          }
                         }
+                      }
                     ]
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": true,
-                        "storageUri": "[concat('http://',variables('DiagSAName'),'.blob.core.windows.net')]"
-                    }
+                  }
                 }
+              ]
+            },
+            "osProfile": {
+              "computerNamePrefix": "[parameters('clusterPrefix')]",
+              "adminUsername": "[parameters('adminUserName')]",
+              "adminPassword": "[parameters('adminPassword')]",
+              "linuxConfiguration": "[variables('linuxConfiguration')]"
+            },
+            "storageProfile": {
+              "imageReference": {
+                  "id": "[parameters('imageResourceID')]"
+              }, 
+              "osDisk": {
+                "caching": "ReadOnly",
+                "createOption": "FromImage",
+                "managedDisk": {
+                  "storageAccountType": "Premium_LRS"
+              }
             }
+          }
         }
-        
-    ]
+      }
+    }
+  ]
 }
