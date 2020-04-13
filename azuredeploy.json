@@ -11,9 +11,8 @@
     },
     "CompNodeVMsku": {
       "type": "string",
-      "defaultValue": "Standard_E2s_v3",
+      "defaultValue": "Standard_E4s_v3",
       "allowedValues": [
-        "Standard_E2s_v3",
         "Standard_E4s_v3",
         "Standard_E8s_v3",
         "Standard_E16s_v3",
@@ -147,7 +146,7 @@
         "type": "Microsoft.Compute/virtualMachineScaleSets",
         "name": "[parameters('ClusterPrefix')]",
         "location": "[variables('location')]",
-        "apiVersion": "2017-03-30",
+        "apiVersion": "2019-07-01",
         "tags": {
                 "platformsettings.host_environment.disablehyperthreading": "true"
         },
