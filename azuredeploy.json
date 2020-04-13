@@ -101,6 +101,15 @@
       "metadata": {
         "description": "name of existing Virtual Network"
       }
+    },
+    "workspaceResourceId": {
+        "type": "String"
+    },
+    "workspaceKey": {
+            "type": "string",
+            "metadata": {
+            "description": "workspace key"
+             }
     }
   },
   "variables": {
@@ -123,15 +132,22 @@
       }
     },
     "linuxConfiguration_password": { },
-    "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]"
+    "linuxConfiguration": "[variables(concat('linuxConfiguration_',parameters('authenticationType')))]",
+    "daExtensionName": "DependencyAgentLinux",
+    "daExtensionType": "DependencyAgentLinux",
+    "daExtensionVersion": "9.5",
+    "mmaExtensionName": "OMSExtension",
+    "mmaExtensionType": "OmsAgentForLinux",
+    "mmaExtensionVersion": "1.4"
     
   },  
   "resources": [
+      
     {
         "type": "Microsoft.Compute/virtualMachineScaleSets",
         "name": "[parameters('ClusterPrefix')]",
         "location": "[variables('location')]",
-        "apiVersion": "2019-07-01",
+        "apiVersion": "2017-03-30",
         "tags": {
                 "platformsettings.host_environment.disablehyperthreading": "true"
         },
@@ -186,7 +202,40 @@
                   "storageAccountType": "Premium_LRS"
               }
             }
-          }
+          },
+          "extensionProfile": {
+            "extensions": [
+                {
+                    "type": "extensions",
+                    "name": "[variables('mmaExtensionName')]",
+                    "location": "[resourceGroup().location]",
+                    "properties": {
+                        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+                        "type": "[variables('mmaExtensionType')]",
+                        "typeHandlerVersion": "[variables('mmaExtensionVersion')]",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                                        "workspaceId": "[parameters('workspaceResourceId')]",
+                                        "stopOnMultipleConnections": "true"
+                                    },
+                                    "protectedSettings": {
+                                        "workspaceKey": "[parameters('workspaceKey')]"
+                                    }
+                        }
+                },
+                {
+                    "type": "extensions",
+                    "name": "[variables('daExtensionName')]",
+                    "location": "[resourceGroup().location]",
+                    "properties": {
+                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
+                        "type": "[variables('daExtensionType')]",
+                        "typeHandlerVersion": "[variables('daExtensionVersion')]",
+                        "autoUpgradeMinorVersion": true
+                    }
+                }
+                ]
+            }
         }
       }
     }
