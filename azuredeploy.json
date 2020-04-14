@@ -101,15 +101,6 @@
       "metadata": {
         "description": "name of existing Virtual Network"
       }
-    },
-    "workspaceResourceId": {
-        "type": "String"
-    },
-    "workspaceKey": {
-            "type": "string",
-            "metadata": {
-            "description": "workspace key"
-             }
     }
   },
   "variables": {
@@ -200,44 +191,11 @@
                 "createOption": "FromImage",
                 "managedDisk": {
                   "storageAccountType": "Premium_LRS"
+                }
               }
             }
-          },
-          "extensionProfile": {
-            "extensions": [
-                {
-                    "type": "extensions",
-                    "name": "[variables('mmaExtensionName')]",
-                    "location": "[resourceGroup().location]",
-                    "properties": {
-                        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
-                        "type": "[variables('mmaExtensionType')]",
-                        "typeHandlerVersion": "[variables('mmaExtensionVersion')]",
-                        "autoUpgradeMinorVersion": true,
-                        "settings": {
-                                        "workspaceId": "[parameters('workspaceResourceId')]",
-                                        "stopOnMultipleConnections": "true"
-                                    },
-                                    "protectedSettings": {
-                                        "workspaceKey": "[parameters('workspaceKey')]"
-                                    }
-                        }
-                },
-                {
-                    "type": "extensions",
-                    "name": "[variables('daExtensionName')]",
-                    "location": "[resourceGroup().location]",
-                    "properties": {
-                        "publisher": "Microsoft.Azure.Monitoring.DependencyAgent",
-                        "type": "[variables('daExtensionType')]",
-                        "typeHandlerVersion": "[variables('daExtensionVersion')]",
-                        "autoUpgradeMinorVersion": true
-                    }
-                }
-                ]
-            }
+          }
         }
-      }
     }
   ]
 }
