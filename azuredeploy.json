@@ -11,8 +11,9 @@
     },
     "CompNodeVMsku": {
       "type": "string",
-      "defaultValue": "Standard_E4s_v3",
+      "defaultValue": "Standard_HB120rs_v2",
       "allowedValues": [
+        "Standard_HB120rs_v2",
         "Standard_E4s_v3",
         "Standard_E8s_v3",
         "Standard_E16s_v3",
@@ -169,7 +170,7 @@
                   "name": "[variables('NodenicName')]",
                   "properties": {
                     "primary": "true",
-                    "enableAcceleratedNetworking": true,
+                    "enableAcceleratedNetworking": false,
                     "ipConfigurations": [
                       {
                         "name": "[variables('NodeipConfigName')]",
