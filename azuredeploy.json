@@ -138,7 +138,13 @@
     "daExtensionVersion": "9.5",
     "mmaExtensionName": "OMSExtension",
     "mmaExtensionType": "OmsAgentForLinux",
-    "mmaExtensionVersion": "1.4"
+    "mmaExtensionVersion": "1.4",
+    "vmScripts": {
+      "scriptsToDownload": [
+        "https://raw.githubusercontent.com/grandparoach/sandbox/ICV/setup.sh"
+      ],
+      "commandToExecute": "[concat('bash setup.sh ')]"
+    }
     
   },  
   "resources": [
@@ -233,8 +239,21 @@
                         "typeHandlerVersion": "[variables('daExtensionVersion')]",
                         "autoUpgradeMinorVersion": true
                     }
+                },
+                {
+                    "name": "run setup script",
+                    "properties": {
+                        "publisher": "Microsoft.Azure.Extensions",
+                        "type": "CustomScript",
+                        "typeHandlerVersion": "2.0",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "fileUris": "[variables('vmScripts').scriptsToDownload]",
+                            "commandToExecute": "[variables('vmScripts').commandToExecute]"
+                        }
+                    }
                 }
-                ]
+              ]
             }
         }
       }
