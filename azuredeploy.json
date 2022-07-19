@@ -498,7 +498,7 @@
             "name": "head-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', 'Login-IP')]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', 'head-IP')]",
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
             ],
             "properties": {
@@ -509,7 +509,7 @@
                             "privateIPAddress": "192.168.0.4",
                             "privateIPAllocationMethod": "Static",
                             "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'Login-IP')]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'head-IP')]"
                             },
                             "subnet": {
                                 "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
