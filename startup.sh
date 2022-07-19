@@ -8,8 +8,6 @@ adminPassword=${2}
 sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
 setenforce 0
 
-yum -y update
-
 #set a password for root
 echo "root:$adminPassword" | chpasswd
 
@@ -34,3 +32,4 @@ configure_ssh() {
 }
 
 configure_ssh
+yum -y update
