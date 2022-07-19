@@ -13,7 +13,7 @@ yum -y update
 #set a password for root
 echo "root:$adminPassword" | chpasswd
 
-sleep 30
+sleep 60
 
 # Disable tty requirement for sudo
 sed -i 's/^Defaults[ ]*requiretty/# Defaults requiretty/g' /etc/sudoers
