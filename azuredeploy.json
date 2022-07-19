@@ -24,9 +24,15 @@
               "offer": "CentOS",
               "sku": "7.6",
               "version": "latest"
+            },
+            "Rocky": {
+              "publisher": "erockyenterprisesoftwarefoundationinc1653071250513",
+              "offer": "rockylinux",
+              "sku": "free",
+              "version": "latest"
             }
         },
-        "NodeimageReference": "[variables('Images')['CentOS_7.6']]",
+        "NodeimageReference": "[variables('Images')['Rocky']]",
                     
         "vmScripts": {
           "scriptsToDownload": [
@@ -110,6 +116,11 @@
                 "name": "ComputeVmCopy",
                 "count": 2
               },
+            "plan": {
+                "name": "free",
+                "product": "rockylinux",
+                "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
+            },
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_D2s_v3"
@@ -187,6 +198,11 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', 'Login-nic')]"
             ],
+            "plan": {
+                "name": "free",
+                "product": "rockylinux",
+                "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
+            },
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_D2s_v3"
@@ -309,6 +325,11 @@
                 "name": "StorageVmCopy",
                 "count": 4
               },
+            "plan": {
+                "name": "free",
+                "product": "rockylinux",
+                "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
+            },
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_D2s_v3"
