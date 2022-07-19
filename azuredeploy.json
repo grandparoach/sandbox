@@ -378,9 +378,9 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
-                "[concat('Microsoft.Compute/virtualMachines/', 'compute0')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'compute3')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'storage2')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'storage3')]",
@@ -407,7 +407,7 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "compute0-nic",
+            "name": "compute1-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
@@ -436,7 +436,7 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "compute1-nic",
+            "name": "compute2-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
@@ -465,7 +465,7 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "compute2-nic",
+            "name": "compute3-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
