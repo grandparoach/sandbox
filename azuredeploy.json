@@ -187,7 +187,7 @@
             ],
             "copy": {
                 "name": "ComputeExtCopy",
-                "count": 2
+                "count": 3
               },
             "properties": {
               "publisher": "Microsoft.Azure.Extensions",
