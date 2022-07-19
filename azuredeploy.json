@@ -51,7 +51,7 @@
         {
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2018-12-01",
-            "name": "Login-IP",
+            "name": "head-IP",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "Basic",
@@ -110,7 +110,7 @@
             "name": "[concat('compute', copyindex())]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces', concat('Compute-', copyindex(), '-nic'))]"
+                "[resourceId('Microsoft.Network/networkInterfaces', concat('compute', copyindex(), '-nic'))]"
                 ],
             "copy": {
                 "name": "ComputeVmCopy",
