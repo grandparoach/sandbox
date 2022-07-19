@@ -29,7 +29,7 @@ mkdir -p /share/home
 
 yum -y install nfs-utils
 
-if [ `hostname` == "Login" ];
+if [ `hostname` == "head" ];
 then
 
 echo "/share/home   *(rw,async)" >> /etc/exports
@@ -73,7 +73,7 @@ else
 # wait for NFS Server to get configured
 sleep 30
 
-echo "Login:/share/home /share/home nfs4   rw,auto,_netdev 0 0" >> /etc/fstab
+echo "head:/share/home /share/home nfs4   rw,auto,_netdev 0 0" >> /etc/fstab
 mount -a
 mount
 
@@ -95,9 +95,10 @@ configure_ssh() {
     yum -y install sshpass
     ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -P ''
 
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@Login -p 22
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@Compute-0 -p 22
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@Compute-1 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@head -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute0 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute1 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute2 -p 22
     sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@Storage-0 -p 22
     sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@Storage-1 -p 22
     sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@Storage-2 -p 22
