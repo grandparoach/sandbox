@@ -114,7 +114,7 @@
                 ],
             "copy": {
                 "name": "ComputeVmCopy",
-                "count": 3
+                "count": 4
               },
             "plan": {
                 "name": "free",
@@ -179,11 +179,12 @@
               "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
               "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
               "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
-              "[concat('Microsoft.Compute/virtualMachines/', 'compute3')]"
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute3')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute4')]"
             ],
             "copy": {
                 "name": "ComputeExtCopy",
-                "count": 3
+                "count": 4
               },
             "properties": {
               "publisher": "Microsoft.Azure.Extensions",
@@ -270,7 +271,8 @@
                 "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
                 "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'compute3')]"
+                "[concat('Microsoft.Compute/virtualMachines/', 'compute3')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'compute4')]"
             ],
             "properties": {
               "publisher": "Microsoft.Azure.Extensions",
@@ -359,6 +361,36 @@
                         "properties": {
                             "provisioningState": "Succeeded",
                             "privateIPAddress": "192.168.0.7",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true,
+                "tapConfigurations": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-12-01",
+            "name": "compute4-nic",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "192.168.0.8",
                             "privateIPAllocationMethod": "Static",
                             "subnet": {
                                 "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
