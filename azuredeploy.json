@@ -123,9 +123,9 @@
                 "count": 4
               },
             "plan": {
-                "name": "free",
+                "name": "8_5-hpc-gen2",
                 "product": "almalinux-hpc",
-                "publisher": "8_5-hpc"
+                "publisher": "almalinux"
             },
             "properties": {
                 "hardwareProfile": {
@@ -215,9 +215,9 @@
                 "[resourceId('Microsoft.Network/networkInterfaces', 'head-nic')]"
             ],
             "plan": {
-                "name": "free",
+                "name": "8_5-hpc-gen2",
                 "product": "almalinux-hpc",
-                "publisher": "8_5-hpc"
+                "publisher": "almalinux"
             },
             "properties": {
                 "hardwareProfile": {
