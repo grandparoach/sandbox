@@ -2,13 +2,29 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "OS": {
-            "type": "string",
-            "defaultValue": "CentOS 8",
-            "metadata": {
-              "description": "Operating System for the Virtual Machines."
-            }
-        },
+      "VMsku": {
+      "type": "string",
+      "defaultValue": "Standard_D2as_v5",
+      "allowedValues": [
+        "Standard_D2as_v5",
+        "Standard_D2s_v5"
+      ],
+      "metadata": {
+        "description": "sku to use for the VM's"
+      }
+    },
+    "OSImage": {
+      "type": "string",
+      "defaultValue": "CentOS_7.2",
+      "allowedValues": [
+        "CentOS_6.7",
+        "CentOS_7.2",
+        "RHEL_7.2"
+      ],
+      "metadata": {
+        "description": "The VM image of the master nodes"
+      }
+    },
         "adminUserName": {
             "type": "string",
             "metadata": {
@@ -45,8 +61,28 @@
               "version": "latest"
             }
         },
-        "NodeimageReference": "[variables('Images')['AlmaHPC']]",
-                    
+        "NodeimageReference": "[variables('Images')[parameters('OSImage')]]",
+        "Plans": {
+            "CentOS_7.6": {
+              "publisher": "OpenLogic",
+              "offer": "CentOS",
+              "sku": "7.6",
+              "version": "latest"
+            },
+            "Rocky": {
+              "publisher": "erockyenterprisesoftwarefoundationinc1653071250513",
+              "offer": "rockylinux",
+              "sku": "free",
+              "version": "latest"
+            },
+            "AlmaHPC": {
+              "publisher": "almalinux",
+              "offer": "almalinux-hpc",
+              "sku": "8_5-hpc",
+              "version": "latest"
+            }
+        },
+        "NodePlanReference": "[variables('Plans')[parameters('OSImage')]]",            
         "vmScripts": {
           "scriptsToDownload": [
             "https://raw.githubusercontent.com/grandparoach/sandbox/LCIstudent/startup.sh"
@@ -129,11 +165,7 @@
                 "name": "ComputeVmCopy",
                 "count": 4
               },
-            "plan": {
-                "name": "8_5-hpc-gen2",
-                "product": "almalinux-hpc",
-                "publisher": "almalinux"
-            },
+            "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_D2as_v5"
@@ -221,11 +253,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', 'head-nic')]"
             ],
-            "plan": {
-                "name": "8_5-hpc-gen2",
-                "product": "almalinux-hpc",
-                "publisher": "almalinux"
-            },
+            "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_D2as_v5"
