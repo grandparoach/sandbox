@@ -124,8 +124,8 @@
               },
             "plan": {
                 "name": "free",
-                "product": "rockylinux",
-                "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
+                "product": "almalinux-hpc",
+                "publisher": "8_5-hpc"
             },
             "properties": {
                 "hardwareProfile": {
@@ -216,8 +216,8 @@
             ],
             "plan": {
                 "name": "free",
-                "product": "rockylinux",
-                "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
+                "product": "almalinux-hpc",
+                "publisher": "8_5-hpc"
             },
             "properties": {
                 "hardwareProfile": {
