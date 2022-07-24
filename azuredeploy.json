@@ -30,9 +30,15 @@
               "offer": "rockylinux",
               "sku": "free",
               "version": "latest"
+            },
+            "AlmaHPC": {
+              "publisher": "almalinux",
+              "offer": "almalinux-hpc",
+              "sku": "8_5-hpc",
+              "version": "latest"
             }
         },
-        "NodeimageReference": "[variables('Images')['Rocky']]",
+        "NodeimageReference": "[variables('Images')['AlmaHPC']]",
                     
         "vmScripts": {
           "scriptsToDownload": [
