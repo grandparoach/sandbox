@@ -17,9 +17,9 @@
       "type": "string",
       "defaultValue": "CentOS_7.2",
       "allowedValues": [
-        "CentOS_6.7",
-        "CentOS_7.2",
-        "RHEL_7.2"
+        "CentOS_8",
+        "Almalinux_8.5",
+        "Rocky_8"
       ],
       "metadata": {
         "description": "The VM image of the master nodes"
@@ -42,19 +42,19 @@
     "variables": {
               
         "Images": {
-            "CentOS_7.6": {
+            "CentOS_8": {
               "publisher": "OpenLogic",
-              "offer": "CentOS",
-              "sku": "7.6",
-              "version": "latest"
-            },
-            "Rocky": {
+              "offer": "CentOS-HPC",
+              "sku": "8_1-gen2",
+              "version": "latest"  
+            },  
+            "Rocky_8": {
               "publisher": "erockyenterprisesoftwarefoundationinc1653071250513",
               "offer": "rockylinux",
               "sku": "free",
               "version": "latest"
             },
-            "AlmaHPC": {
+            "Almalinux_8.5": {
               "publisher": "almalinux",
               "offer": "almalinux-hpc",
               "sku": "8_5-hpc",
@@ -63,23 +63,16 @@
         },
         "NodeimageReference": "[variables('Images')[parameters('OSImage')]]",
         "Plans": {
-            "CentOS_7.6": {
-              "publisher": "OpenLogic",
-              "offer": "CentOS",
-              "sku": "7.6",
-              "version": "latest"
+            "CentOS_8": {},
+            "Rocky_8": {
+               "name": "free",
+               "product": "rockylinux",
+               "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
             },
-            "Rocky": {
-              "publisher": "erockyenterprisesoftwarefoundationinc1653071250513",
-              "offer": "rockylinux",
-              "sku": "free",
-              "version": "latest"
-            },
-            "AlmaHPC": {
-              "publisher": "almalinux",
-              "offer": "almalinux-hpc",
-              "sku": "8_5-hpc",
-              "version": "latest"
+            "Almalinux_8.5": {
+              "name": "8_5-hpc-gen2",
+               "product": "almalinux-hpc",
+               "publisher": "almalinux"
             }
         },
         "NodePlanReference": "[variables('Plans')[parameters('OSImage')]]",            
@@ -168,7 +161,7 @@
             "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "Standard_D2as_v5"
+                    "vmSize": "[parameters('VMsku')]"
                 },
                 "storageProfile": {
                     "imageReference": "[variables('NodeimageReference')]",
