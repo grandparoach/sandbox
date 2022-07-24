@@ -15,7 +15,7 @@
     },
     "OSImage": {
       "type": "string",
-      "defaultValue": "CentOS_7.2",
+      "defaultValue": "CentOS_8",
       "allowedValues": [
         "CentOS_8",
         "Almalinux_8.5",
