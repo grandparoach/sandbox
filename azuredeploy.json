@@ -63,7 +63,11 @@
         },
         "NodeimageReference": "[variables('Images')[parameters('OSImage')]]",
         "Plans": {
-            "CentOS_8": {},
+            "CentOS_8": {
+               "name": "8_1-gen2",
+               "product": "CentOS-HPC",
+               "publisher": "OpenLogic"   
+            },
             "Rocky_8": {
                "name": "free",
                "product": "rockylinux",
