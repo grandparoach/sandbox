@@ -16,7 +16,7 @@
     },
     "OSImage": {
       "type": "string",
-      "defaultValue": "CentOS_8",
+      "defaultValue": "Rocky_8",
       "allowedValues": [
         "CentOS_8",
         "Almalinux_8.5",
@@ -254,7 +254,7 @@
             "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "Standard_D2as_v5"
+                    "vmSize": "[parameters('VMsku')]"
                 },
                 "storageProfile": {
                     "imageReference": "[variables('NodeimageReference')]",
