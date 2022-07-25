@@ -33,4 +33,4 @@ configure_ssh() {
 }
 
 configure_ssh
-yum -y update
+#yum -y update
