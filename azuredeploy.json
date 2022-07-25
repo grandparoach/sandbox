@@ -2,7 +2,20 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "VMsku": {
+      "HeadVMsku": {
+      "type": "string",
+      "defaultValue": "Standard_HB60rs",
+      "allowedValues": [
+        "Standard_HB60rs",
+        "Standard_F2s",
+        "Standard_D2as_v5",
+        "Standard_D2s_v5"
+      ],
+      "metadata": {
+        "description": "sku to use for the VM's"
+      }
+    },
+    "ComputeVMsku": {
       "type": "string",
       "defaultValue": "Standard_F2s",
       "allowedValues": [
@@ -13,7 +26,7 @@
       "metadata": {
         "description": "sku to use for the VM's"
       }
-    },
+    },    
     "OSImage": {
       "type": "string",
       "defaultValue": "Rocky_8",
@@ -166,7 +179,7 @@
             "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "[parameters('VMsku')]"
+                    "vmSize": "[parameters('ComputeVMsku')]"
                 },
                 "storageProfile": {
                     "imageReference": "[variables('NodeimageReference')]",
@@ -254,7 +267,7 @@
             "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "[parameters('VMsku')]"
+                    "vmSize": "[parameters('HeadVMsku')]"
                 },
                 "storageProfile": {
                     "imageReference": "[variables('NodeimageReference')]",
