@@ -9,7 +9,7 @@ sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
 setenforce 0
 
 #set a password for root
-echo "root:$adminPassword" | chpasswd
+#echo "root:$adminPassword" | chpasswd
 
 sleep 60
 
@@ -22,13 +22,13 @@ echo "$adminUserName ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 configure_ssh() {
     
     yum -y install sshpass
-    ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -P ''
+    ssh-keygen -t rsa -f /home/$adminUserName/.ssh/id_rsa -q -P ''
 
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@head -p 22
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute1 -p 22
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute2 -p 22
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute3 -p 22
-    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute4 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /home/$adminUserName/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUserName@head -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /home/$adminUserName/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUserName@compute1 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /home/$adminUserName/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUserName@compute2 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /home/$adminUserName/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUserName@compute3 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /home/$adminUserName/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 $adminUserName@compute4 -p 22
     
 }
 
