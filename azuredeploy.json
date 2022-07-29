@@ -4,7 +4,7 @@
     "parameters": {
       "HeadVMsku": {
       "type": "string",
-      "defaultValue": "Standard_HB60rs",
+      "defaultValue": "Standard_F2s",
       "allowedValues": [
         "Standard_HB60rs",
         "Standard_F2s",
