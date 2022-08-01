@@ -2,43 +2,6 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "HeadVMsku": {
-      "type": "string",
-      "defaultValue": "Standard_F2s",
-      "allowedValues": [
-        "Standard_HB60rs",
-        "Standard_F2s",
-        "Standard_D2as_v5",
-        "Standard_D2s_v5"
-      ],
-      "metadata": {
-        "description": "sku to use for the VM's"
-      }
-    },
-    "ComputeVMsku": {
-      "type": "string",
-      "defaultValue": "Standard_F2s",
-      "allowedValues": [
-        "Standard_F2s",
-        "Standard_D2as_v5",
-        "Standard_D2s_v5"
-      ],
-      "metadata": {
-        "description": "sku to use for the VM's"
-      }
-    },    
-    "OSImage": {
-      "type": "string",
-      "defaultValue": "Rocky_8",
-      "allowedValues": [
-        "CentOS_8",
-        "Almalinux_8.5",
-        "Rocky_8"
-      ],
-      "metadata": {
-        "description": "The VM image of the master nodes"
-      }
-    },
         "adminUserName": {
             "type": "string",
             "metadata": {
@@ -75,7 +38,7 @@
               "version": "latest"
             }
         },
-        "NodeimageReference": "[variables('Images')[parameters('OSImage')]]",
+        "NodeimageReference": "[variables('Images')['Rocky_8']]",
         "Plans": {
             "CentOS_8": {
                "name": "8_1-gen2",
@@ -93,7 +56,7 @@
                "publisher": "almalinux"
             }
         },
-        "NodePlanReference": "[variables('Plans')[parameters('OSImage')]]",            
+        "NodePlanReference": "[variables('Plans')['Rocky_8']]",            
         "vmScripts": {
           "scriptsToDownload": [
             "https://raw.githubusercontent.com/grandparoach/sandbox/LCIstudent/startup.sh"
@@ -102,10 +65,6 @@
           }
         },
           
-
-
-
-    
     "resources": [
         
         {
@@ -179,7 +138,7 @@
             "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "[parameters('ComputeVMsku')]"
+                    "vmSize": "Standard_F2s"
                 },
                 "storageProfile": {
                     "imageReference": "[variables('NodeimageReference')]",
@@ -267,7 +226,7 @@
             "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "[parameters('HeadVMsku')]"
+                    "vmSize": "Standard_F2s"
                 },
                 "storageProfile": {
                     "imageReference": "[variables('NodeimageReference')]",
