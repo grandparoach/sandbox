@@ -6,6 +6,6 @@
 This repository will deploy a head node and four compute nodes for use in the hands-on labs for the LCI Workshop.
 
 
-![Workshop Environment](Doc/"LCI Architecture.png")
+![Workshop Environment](Doc/"LCI_Architecture.png")
 
 
