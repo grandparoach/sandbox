@@ -463,8 +463,8 @@
         }
     ],
     "outputs": {
-    "headFQDN": {
-      "value": "[concat('student', parameters('studentnumber'), '.eastus.cloudapp.azure.com')]",
+    "LoginString": {
+      "value": "[concat('ssh instructor@student', parameters('studentnumber'), '.eastus.cloudapp.azure.com')]",
       "type": "string"
     }
   }
