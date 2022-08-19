@@ -88,7 +88,7 @@
                 "publicIPAllocationMethod": "Dynamic",
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
-                    "domainNameLabel": "[concat('Student', parameters('studentnumber'))]"
+                    "domainNameLabel": "[concat('student', parameters('studentnumber'))]"
                 },
                 "ipTags": []
             }
@@ -464,7 +464,7 @@
     ],
     "outputs": {
     "headFQDN": {
-      "value": "[concat('Student', parameters('studentnumber'), 'eastus.cloud.net')]",
+      "value": "[concat('student', parameters('studentnumber'), '.eastus.cloudapp.azure.com')]",
       "type": "string"
     }
   }
