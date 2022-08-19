@@ -2,10 +2,17 @@
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "adminUserName": {
+        "studentNumber": {
             "type": "string",
             "metadata": {
-              "description": "User name for the Virtual Machines."
+              "description": "Student Number for unique DNS name."
+            }
+        },
+        "adminUserName": {
+            "type": "string",
+            "defaultValue": "instructor",
+            "metadata": {
+              "description": "Admin User name for all the VM's."
             }
         },
         "adminPassword": {
@@ -81,7 +88,7 @@
                 "publicIPAllocationMethod": "Dynamic",
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
-                    "domainNameLabel": "[resourceGroup().name]"
+                    "domainNameLabel": "[concat('Student', parameters('studentnumber'))]"
                 },
                 "ipTags": []
             }
@@ -454,5 +461,11 @@
                 "tapConfigurations": []
             }
         }
-    ]
+    ],
+    "outputs": {
+    "headFQDN": {
+      "value": "[concat('Student', parameters('studentnumber'), 'eastus.cloud.net')]",
+      "type": "string"
+    }
+  }
 }
