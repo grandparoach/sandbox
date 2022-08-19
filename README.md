@@ -3,9 +3,9 @@
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
 
-This repository will deploy a login node, two compute nodes, and 4 storage nodes for use in the hands-on labs for the LCI Workshop.
+This repository will deploy a head node and four compute nodes for use in the hands-on labs for the LCI Workshop.
 
 
-![Workshop Environment](Doc/LCI Architecture.png)
+![Workshop Environment](Doc/"LCI Architecture.png")
 
 
