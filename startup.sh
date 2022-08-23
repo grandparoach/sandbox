@@ -9,7 +9,7 @@ sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
 setenforce 0
 
 #prevent the inactive sessions from locking up
-sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 360/I' /etc/ssh/sshd_config
+sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 3600/I' /etc/ssh/sshd_config
 systemctl restart sshd
 
 #set a password for root
