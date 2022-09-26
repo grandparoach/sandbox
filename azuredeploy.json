@@ -1,39 +1,18 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "CustomImageResourceGroup": {
+        "studentNumber": {
             "type": "string",
-            "defaultValue": "",
             "metadata": {
-                "description": "Resource group of the customized disk image"
-            }
-        },
-        "CustomStorageImageName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the customized disk image for the Storage nodes"
-            }
-        },
-        "CustomComputeImageName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the customized disk image for the Compute nodes"
-            }
-        },
-        "CustomLoginImageName": {
-            "type": "string",
-            "defaultValue": "",
-            "metadata": {
-                "description": "Name of the customized disk image for the login node"
+              "description": "Student Number for unique DNS name."
             }
         },
         "adminUserName": {
             "type": "string",
+            "defaultValue": "instructor",
             "metadata": {
-              "description": "User name for the Virtual Machines."
+              "description": "Admin User name for all the VM's."
             }
         },
         "adminPassword": {
@@ -46,29 +25,59 @@
     },
     "variables": {
               
-          "NodeimageReference_login": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomLoginImageName'))]"},
-          "NodeimageReference_compute": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomComputeImageName'))]"},
-          "NodeimageReference_storage": {"id": "[resourceId(parameters('CustomImageResourceGroup'), 'Microsoft.Compute/images', parameters('CustomStorageImageName'))]"},
-          
-                    
-          "vmScripts": {
-            "scriptsToDownload": [
-                "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
+        "Images": {
+            "CentOS_8": {
+              "publisher": "OpenLogic",
+              "offer": "CentOS-HPC",
+              "sku": "8_1-gen2",
+              "version": "latest"  
+            },  
+            "Rocky_8": {
+              "publisher": "erockyenterprisesoftwarefoundationinc1653071250513",
+              "offer": "rockylinux",
+              "sku": "free",
+              "version": "latest"
+            },
+            "Almalinux_8.5": {
+              "publisher": "almalinux",
+              "offer": "almalinux-hpc",
+              "sku": "8_5-hpc",
+              "version": "latest"
+            }
+        },
+        "NodeimageReference": "[variables('Images')['Rocky_8']]",
+        "Plans": {
+            "CentOS_8": {
+               "name": "8_1-gen2",
+               "product": "CentOS-HPC",
+               "publisher": "OpenLogic"   
+            },
+            "Rocky_8": {
+               "name": "free",
+               "product": "rockylinux",
+               "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
+            },
+            "Almalinux_8.5": {
+              "name": "8_5-hpc-gen2",
+               "product": "almalinux-hpc",
+               "publisher": "almalinux"
+            }
+        },
+        "NodePlanReference": "[variables('Plans')['Rocky_8']]",            
+        "vmScripts": {
+          "scriptsToDownload": [
+            "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
             ],
             "commandToExecute": "[concat('bash startup.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'))]"
           }
         },
           
-
-
-
-    
     "resources": [
         
         {
             "type": "Microsoft.Network/publicIPAddresses",
             "apiVersion": "2018-12-01",
-            "name": "Login-IP",
+            "name": "head-IP",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "Basic",
@@ -79,7 +88,7 @@
                 "publicIPAllocationMethod": "Dynamic",
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
-                    "domainNameLabel": "[resourceGroup().name]"
+                    "domainNameLabel": "[concat('student', parameters('studentnumber'))]"
                 },
                 "ipTags": []
             }
@@ -124,21 +133,22 @@
         {
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-10-01",
-            "name": "[concat('Compute-', copyindex())]",
+            "name": "[concat('compute', copyindex(1))]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces', concat('Compute-', copyindex(), '-nic'))]"
+                "[resourceId('Microsoft.Network/networkInterfaces', concat('compute', copyindex(1), '-nic'))]"
                 ],
             "copy": {
                 "name": "ComputeVmCopy",
                 "count": 2
               },
+            "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "Standard_D2s_v3"
+                    "vmSize": "Standard_F2s"
                 },
                 "storageProfile": {
-                    "imageReference": "[variables('NodeimageReference_compute')]",
+                    "imageReference": "[variables('NodeimageReference')]",
                     "osDisk": {
                         "osType": "Linux",
                         "createOption": "FromImage",
@@ -151,7 +161,7 @@
                     "dataDisks": []
                 },
                 "osProfile": {
-                    "computerName": "[concat('Compute-', copyindex())]",
+                    "computerName": "[concat('compute', copyindex(1))]",
                     "adminUsername": "[parameters('adminUserName')]",
                     "adminPassword": "[parameters('adminPassword')]",
                     "linuxConfiguration": {
@@ -164,7 +174,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('Compute-', copyindex(), '-nic'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('compute', copyindex(1), '-nic'))]"
                         }
                     ]
                 }
@@ -172,17 +182,17 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat('Compute-', copyindex(), '/ext')]",
+            "name": "[concat('compute', copyindex(1), '/ext')]",
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-              "[concat('Microsoft.Compute/virtualMachines/', 'Login')]",  
-              "[concat('Microsoft.Compute/virtualMachines/', 'Compute-0')]",
-              "[concat('Microsoft.Compute/virtualMachines/', 'Compute-1')]",
-              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-0')]",
-              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-1')]",
-              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-2')]",
-              "[concat('Microsoft.Compute/virtualMachines/', 'Storage-3')]"
+              "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage2')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage3')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage4')]"
             ],
             "copy": {
                 "name": "ComputeExtCopy",
@@ -205,17 +215,18 @@
         {
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-10-01",
-            "name": "Login",
+            "name": "head",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces', 'Login-nic')]"
+                "[resourceId('Microsoft.Network/networkInterfaces', 'head-nic')]"
             ],
+            "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "Standard_D2s_v3"
+                    "vmSize": "Standard_F2s"
                 },
                 "storageProfile": {
-                    "imageReference": "[variables('NodeimageReference_login')]",
+                    "imageReference": "[variables('NodeimageReference')]",
                     "osDisk": {
                         "osType": "Linux",
                         "createOption": "FromImage",
@@ -226,9 +237,9 @@
                         "diskSizeGB": 30
                     },
                     "dataDisks": [
-                        {
+                       {
                             "lun": 0,
-                            "name": "[concat('Login_DataDisk_0')]",
+                            "name": "[concat('head_DataDisk_0')]",
                             "createOption": "Empty",
                             "caching": "None",
                             "writeAcceleratorEnabled": false,
@@ -239,7 +250,7 @@
                         },
                         {
                             "lun": 1,
-                            "name": "[concat('Login_DataDisk_1')]",
+                            "name": "[concat('head_DataDisk_1')]",
                             "createOption": "Empty",
                             "caching": "None",
                             "writeAcceleratorEnabled": false,
@@ -250,7 +261,7 @@
                         },
                         {
                             "lun": 2,
-                            "name": "[concat('Login_DataDisk_2')]",
+                            "name": "[concat('head_DataDisk_2')]",
                             "createOption": "Empty",
                             "caching": "None",
                             "writeAcceleratorEnabled": false,
@@ -261,7 +272,7 @@
                         },
                         {
                             "lun": 3,
-                            "name": "[concat('Login_DataDisk_3')]",
+                            "name": "[concat('head_DataDisk_3')]",
                             "createOption": "Empty",
                             "caching": "None",
                             "writeAcceleratorEnabled": false,
@@ -273,7 +284,7 @@
                     ]
                 },
                 "osProfile": {
-                    "computerName": "Login",
+                    "computerName": "head",
                     "adminUsername": "[parameters('adminUserName')]",
                     "adminPassword": "[parameters('adminPassword')]",
                     "linuxConfiguration": {
@@ -286,7 +297,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', 'Login-nic')]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', 'head-nic')]"
                         }
                     ]
                 }
@@ -294,17 +305,17 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat('Login/ext')]",
+            "name": "[concat('head/ext')]",
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', 'Login')]",  
-                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-0')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-1')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-0')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-1')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-2')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-3')]"
+                "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
+                "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'storage2')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'storage3')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'storage4')]"
             ],
             "properties": {
               "publisher": "Microsoft.Azure.Extensions",
@@ -323,21 +334,22 @@
         {
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-10-01",
-            "name": "[concat('Storage-', copyindex())]",
+            "name": "[concat('storage', copyindex(1))]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces', concat('Storage-', copyindex(), '-nic'))]"
-            ],
+                "[resourceId('Microsoft.Network/networkInterfaces', concat('storage', copyindex(1), '-nic'))]"
+                ],
             "copy": {
                 "name": "StorageVmCopy",
                 "count": 4
               },
+            "plan": "[variables('NodePlanReference')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "Standard_D2s_v3"
+                    "vmSize": "Standard_F2s"
                 },
                 "storageProfile": {
-                    "imageReference": "[variables('NodeimageReference_storage')]",
+                    "imageReference": "[variables('NodeimageReference')]",
                     "osDisk": {
                         "osType": "Linux",
                         "createOption": "FromImage",
@@ -350,7 +362,7 @@
                     "dataDisks": [
                         {
                             "lun": 0,
-                            "name": "[concat('Storage-', copyindex(), '_DataDisk_0')]",
+                            "name": "[concat('storage', copyindex(1), '_DataDisk_0')]",
                             "createOption": "Empty",
                             "caching": "None",
                             "writeAcceleratorEnabled": false,
@@ -361,19 +373,19 @@
                         },
                         {
                             "lun": 1,
-                            "name": "[concat('Storage-', copyindex(), '_DataDisk_1')]",
+                            "name": "[concat('storage', copyindex(1), '_DataDisk_1')]",
                             "createOption": "Empty",
                             "caching": "None",
                             "writeAcceleratorEnabled": false,
                             "managedDisk": {
                                 "storageAccountType": "Premium_LRS"
-                                },
+                               },
                             "diskSizeGB": 5
                         }
                     ]
                 },
                 "osProfile": {
-                    "computerName": "[concat('Storage-', copyindex())]",
+                    "computerName": "[concat('storage', copyindex(1))]",
                     "adminUsername": "[parameters('adminUserName')]",
                     "adminPassword": "[parameters('adminPassword')]",
                     "linuxConfiguration": {
@@ -386,7 +398,7 @@
                 "networkProfile": {
                     "networkInterfaces": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('Storage-', copyindex(), '-nic'))]"
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('storage', copyindex(1), '-nic'))]"
                         }
                     ]
                 }
@@ -394,17 +406,17 @@
         },
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat('Storage-', copyindex(), '/ext')]",
+            "name": "[concat('storage', copyindex(1), '/ext')]",
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', 'Login')]",  
-                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-0')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Compute-1')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-0')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-1')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-2')]",
-                "[concat('Microsoft.Compute/virtualMachines/', 'Storage-3')]"
+              "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage2')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage3')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage4')]"
             ],
             "copy": {
                 "name": "StorageExtCopy",
@@ -427,7 +439,7 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "Compute-0-nic",
+            "name": "compute1-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
@@ -456,7 +468,7 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "Compute-1-nic",
+            "name": "compute2-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
@@ -485,44 +497,7 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "Login-nic",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[resourceId('Microsoft.Network/publicIPAddresses', 'Login-IP')]",
-                "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
-            ],
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "privateIPAddress": "192.168.0.4",
-                            "privateIPAllocationMethod": "Static",
-                            "publicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'Login-IP')]"
-                            },
-                            "subnet": {
-                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
-                            },
-                            "primary": true,
-                            "privateIPAddressVersion": "IPv4"
-                        }
-                    }
-                ],
-                "dnsSettings": {
-                    "dnsServers": [],
-                    "appliedDnsServers": []
-                },
-                "enableAcceleratedNetworking": false,
-                "enableIPForwarding": false,
-                "primary": true,
-                "tapConfigurations": []
-            }
-        },
-        {
-            "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "2018-12-01",
-            "name": "Storage-0-nic",
+            "name": "storage1-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
@@ -552,16 +527,17 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "Storage-1-nic",
+            "name": "storage2-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
-                ],
+            ],
             "properties": {
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
                         "properties": {
+                            "provisioningState": "Succeeded",
                             "privateIPAddress": "192.168.0.8",
                             "privateIPAllocationMethod": "Static",
                             "subnet": {
@@ -581,11 +557,11 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "Storage-2-nic",
+            "name": "storage3-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
-                ],
+            ],
             "properties": {
                 "ipConfigurations": [
                     {
@@ -611,16 +587,17 @@
         {
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2018-12-01",
-            "name": "Storage-3-nic",
+            "name": "storage4-nic",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
-                ],
+            ],
             "properties": {
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
                         "properties": {
+                            "provisioningState": "Succeeded",
                             "privateIPAddress": "192.168.0.10",
                             "privateIPAllocationMethod": "Static",
                             "subnet": {
@@ -636,6 +613,49 @@
                 "primary": true,
                 "tapConfigurations": []
             }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-12-01",
+            "name": "head-nic",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', 'head-IP')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAddress": "192.168.0.4",
+                            "privateIPAllocationMethod": "Static",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', 'head-IP')]"
+                            },
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": [],
+                    "appliedDnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true,
+                "tapConfigurations": []
+            }
         }
-    ]
+    ],
+    "outputs": {
+    "LoginString": {
+      "value": "[concat('ssh instructor@student', parameters('studentnumber'), '.', '[resourceGroup().location]', '.cloudapp.azure.com')]",
+      "type": "string"
+    }
+  }
 }
