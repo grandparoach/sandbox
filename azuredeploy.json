@@ -26,6 +26,12 @@
     "variables": {
               
         "Images": {
+            "CentOS_7": {
+              "publisher": "OpenLogic",
+              "offer": "CentOS-HPC",
+              "sku": "7_9-gen2",
+              "version": "latest"
+            },
             "CentOS_8": {
               "publisher": "OpenLogic",
               "offer": "CentOS-HPC",
@@ -45,8 +51,9 @@
               "version": "latest"
             }
         },
-        "NodeimageReference": "[variables('Images')['Rocky_8']]",
+        "NodeimageReference": "[variables('Images')['CentOS_7']]",
         "Plans": {
+            "CentOS_7": {}, 
             "CentOS_8": {
                "name": "8_1-gen2",
                "product": "CentOS-HPC",
@@ -63,7 +70,7 @@
                "publisher": "almalinux"
             }
         },
-        "NodePlanReference": "[variables('Plans')['Rocky_8']]",            
+        "NodePlanReference": "[variables('Plans')['CentOS_7']]",            
         "vmScripts": {
           "scriptsToDownload": [
             "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
