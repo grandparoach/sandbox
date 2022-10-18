@@ -51,7 +51,7 @@
               "version": "latest"
             }
         },
-        "NodeimageReference": "[variables('Images')['CentOS_7']]",
+        "NodeimageReference": "[variables('Images')['Rocky_8']]",
         "Plans": {
             "CentOS_7": {}, 
             "CentOS_8": {
@@ -70,7 +70,7 @@
                "publisher": "almalinux"
             }
         },
-        "NodePlanReference": "[variables('Plans')['CentOS_7']]",            
+        "NodePlanReference": "[variables('Plans')['Rocky_8']]",            
         "vmScripts": {
           "scriptsToDownload": [
             "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
