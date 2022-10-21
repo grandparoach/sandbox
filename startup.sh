@@ -113,4 +113,7 @@ configure_ssh() {
 }
 
 configure_ssh
+if [ `uname -a | grep el8` -ne "" ];
+then
 yum -y update
+fi
