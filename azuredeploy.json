@@ -140,6 +140,94 @@
         {
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2018-10-01",
+            "name": "[concat('perfSONAR', copyindex(1))]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', concat('perfSONAR', copyindex(1), '-nic'))]"
+                ],
+            "copy": {
+                "name": "perfSONARVmCopy",
+                "count": 2
+              },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_F2s"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "OpenLogic",
+                        "offer": "CentOS-HPC",
+                        "sku": "7_9-gen2",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "osType": "Linux",
+                        "createOption": "FromImage",
+                        "caching": "ReadWrite",
+                        "managedDisk": {
+                            "storageAccountType": "Premium_LRS"
+                            },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[concat('perfSONAR', copyindex(1))]",
+                    "adminUsername": "[parameters('adminUserName')]",
+                    "adminPassword": "[parameters('adminPassword')]",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": false,
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat('perfSONAR', copyindex(1), '-nic'))]"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat('perfSONAR', copyindex(1), '/ext')]",
+            "apiVersion": "2015-06-15",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+              "[concat('Microsoft.Compute/virtualMachines/', 'head')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR2')]",  
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage2')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage3')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'storage4')]"
+            ],
+            "copy": {
+                "name": "ComputeExtCopy",
+                "count": 2
+              },
+            "properties": {
+              "publisher": "Microsoft.Azure.Extensions",
+              "type": "CustomScript",
+              "typeHandlerVersion": "2.0",
+              "autoUpgradeMinorVersion": true,
+              "settings": {
+                "fileUris": "[variables('vmScripts').scriptsToDownload]",
+                "timestamp": 12
+              },
+              "protectedSettings": {
+                "commandToExecute": "[variables('vmScripts').commandToExecute]"
+              }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-10-01",
             "name": "[concat('compute', copyindex(1))]",
             "location": "[resourceGroup().location]",
             "dependsOn": [
@@ -193,7 +281,9 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-              "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
+              "[concat('Microsoft.Compute/virtualMachines/', 'head')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR2')]",   
               "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
               "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
               "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
@@ -316,7 +406,9 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
+                "[concat('Microsoft.Compute/virtualMachines/', 'head')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR1')]",
+                "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR2')]",   
                 "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
                 "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
@@ -417,7 +509,9 @@
             "apiVersion": "2015-06-15",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-              "[concat('Microsoft.Compute/virtualMachines/', 'head')]",  
+              "[concat('Microsoft.Compute/virtualMachines/', 'head')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR1')]",
+              "[concat('Microsoft.Compute/virtualMachines/', 'perfSONAR2')]",   
               "[concat('Microsoft.Compute/virtualMachines/', 'compute1')]",
               "[concat('Microsoft.Compute/virtualMachines/', 'compute2')]",
               "[concat('Microsoft.Compute/virtualMachines/', 'storage1')]",
@@ -606,6 +700,66 @@
                         "properties": {
                             "provisioningState": "Succeeded",
                             "privateIPAddress": "192.168.0.10",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true,
+                "tapConfigurations": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-12-01",
+            "name": "perfSONAR1-nic",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "192.168.0.11",
+                            "privateIPAllocationMethod": "Static",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+                            },
+                            "primary": true,
+                            "privateIPAddressVersion": "IPv4"
+                        }
+                    }
+                ],
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false,
+                "primary": true,
+                "tapConfigurations": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2018-12-01",
+            "name": "perfSONAR2-nic",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "provisioningState": "Succeeded",
+                            "privateIPAddress": "192.168.0.12",
                             "privateIPAllocationMethod": "Static",
                             "subnet": {
                                 "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', 'LCIVNet', 'private')]"
