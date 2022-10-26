@@ -308,7 +308,7 @@
     ],
     "outputs": {
     "LoginString": {
-      "value": "[concat('ssh ', parameters('adminUserName'), 'perfsonar1@student', parameters('studentnumber'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
+      "value": "[concat('ssh ', parameters('adminUserName'), '@perfsonar1student', parameters('studentnumber'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
       "type": "string"
     }
   }
