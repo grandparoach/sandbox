@@ -54,7 +54,11 @@
         "NodeimageReference": "[variables('Images')[parameters('OSselection')]]",
         "Plans": {
             "CentOS_7": {}, 
-            "Ubuntu_2004": {},
+            "Ubuntu_2004": {
+               "name": "20_04-lts-ARM",
+               "product": "0001-com-ubuntu-server-focal",
+               "publisher": "canonical"  
+            },
             "Rocky_8": {
                "name": "free",
                "product": "rockylinux",
