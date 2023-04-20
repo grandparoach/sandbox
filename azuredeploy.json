@@ -2,10 +2,16 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "studentNumber": {
+        "OSselection":{
             "type": "string",
+            "defaultValue": "Rocky_8",
+            "allowedValues": [
+              "Rocky_8",
+              "Ubuntu_2004",
+              "CentOS_7"
+            ],
             "metadata": {
-              "description": "Student Number for unique DNS name."
+              "description": "OS family for all the VM's."
             }
         },
         "adminUserName": {
@@ -26,56 +32,41 @@
     "variables": {
               
         "Images": {
+            "Ubuntu_2004": {
+              "publisher": "canonical",
+              "offer": "0001-com-ubuntu-server-focal",
+              "sku": "20_04-lts-gen2",
+              "version": "latest"
+            },
             "CentOS_7": {
               "publisher": "OpenLogic",
               "offer": "CentOS-HPC",
               "sku": "7_9-gen2",
               "version": "latest"
             },
-            "CentOS_8": {
-              "publisher": "OpenLogic",
-              "offer": "CentOS-HPC",
-              "sku": "8_1-gen2",
-              "version": "latest"  
-            },  
             "Rocky_8": {
               "publisher": "erockyenterprisesoftwarefoundationinc1653071250513",
               "offer": "rockylinux",
               "sku": "free",
               "version": "latest"
-            },
-            "Almalinux_8.5": {
-              "publisher": "almalinux",
-              "offer": "almalinux-hpc",
-              "sku": "8_5-hpc",
-              "version": "latest"
             }
         },
-        "NodeimageReference": "[variables('Images')['Rocky_8']]",
+        "NodeimageReference": "[variables('Images')[parameters('OSselection')]]",
         "Plans": {
             "CentOS_7": {}, 
-            "CentOS_8": {
-               "name": "8_1-gen2",
-               "product": "CentOS-HPC",
-               "publisher": "OpenLogic"   
-            },
+            "Ubuntu_2004": {},
             "Rocky_8": {
                "name": "free",
                "product": "rockylinux",
                "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
-            },
-            "Almalinux_8.5": {
-              "name": "8_5-hpc-gen2",
-               "product": "almalinux-hpc",
-               "publisher": "almalinux"
             }
         },
-        "NodePlanReference": "[variables('Plans')['Rocky_8']]",            
+        "NodePlanReference": "[variables('Plans')[parameters('OSselection')]]",            
         "vmScripts": {
           "scriptsToDownload": [
             "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
             ],
-            "commandToExecute": "[concat('bash startup.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'))]"
+            "commandToExecute": "[concat('bash startup.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'), ' ', parameters('OSselection'))]"
           }
         },
           
@@ -95,7 +86,7 @@
                 "publicIPAllocationMethod": "Dynamic",
                 "idleTimeoutInMinutes": 4,
                 "dnsSettings": {
-                    "domainNameLabel": "[concat('student', parameters('studentnumber'))]"
+                    "domainNameLabel": "[resourceGroup().name]"
                 },
                 "ipTags": []
             }
@@ -503,7 +494,7 @@
     ],
     "outputs": {
     "LoginString": {
-      "value": "[concat('ssh ', parameters('adminUserName'), '@student', parameters('studentnumber'), '.', resourceGroup().location, '.cloudapp.azure.com')]",
+      "value": "[concat('ssh ', parameters('adminUserName'), '@', resourceGroup().name, '.', resourceGroup().location, '.cloudapp.azure.com')]",
       "type": "string"
     }
   }
