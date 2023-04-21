@@ -144,8 +144,7 @@
                 "name": "ComputeVmCopy",
                 "count": 4
               },
-            "condition": "[equals(parameters('OSselection'), 'Rocky_8')]", 
-            "plan": "[variables('NodePlanReference')]",
+            "plan": "[if(equals(parameters('OSselection'), 'Rocky_8'), variables('NodePlanReference'), json('null'))]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_F2s"
@@ -221,7 +220,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', 'head-nic')]"
             ],
-            "plan": "[variables('NodePlanReference')]",
+            "plan": "[if(equals(parameters('OSselection'), 'Rocky_8'), variables('NodePlanReference'), json('null'))]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_F2s"
