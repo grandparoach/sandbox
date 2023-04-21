@@ -20,6 +20,9 @@ sleep 30
 
 #prevent the inactive sessions from locking up
 sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 3600/I' /etc/ssh/sshd_config
+
+#Allow root login
+sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/I' /etc/ssh/sshd_config
 systemctl restart sshd
 
 # Disable tty requirement for sudo
