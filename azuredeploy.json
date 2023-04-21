@@ -7,8 +7,7 @@
             "defaultValue": "Rocky_8",
             "allowedValues": [
               "Rocky_8",
-              "Ubuntu_2004",
-              "CentOS_7"
+              "Ubuntu_2004"
             ],
             "metadata": {
               "description": "OS family for all the VM's."
