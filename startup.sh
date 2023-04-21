@@ -1,4 +1,5 @@
 #!/bin/bash
+export TERM=Teletype
 set -x
 
 adminUserName=${1}
@@ -11,6 +12,11 @@ then
     sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
     setenforce 0
 fi
+
+#set a password for root
+echo "root:$adminPassword" | chpasswd
+
+sleep 30
 
 #prevent the inactive sessions from locking up
 sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 3600/I' /etc/ssh/sshd_config
@@ -31,9 +37,17 @@ then
     yum install -y sshpass
 else
     apt-get -y update
-    export TERM=Teletype
     apt-get install -y sshpass
 fi
+    
+    ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -P ''
+
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@head -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute1 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute2 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute3 -p 22
+    sshpass -p $adminPassword ssh-copy-id -i /root/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=2 root@compute4 -p 22
+    
     
     runuser -u $adminUserName -- ssh-keygen -t rsa -f /home/$adminUserName/.ssh/id_rsa -q -P ''
 
