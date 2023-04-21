@@ -68,7 +68,7 @@
         "NodePlanReference": "[variables('Plans')[parameters('OSselection')]]",            
         "vmScripts": {
           "scriptsToDownload": [
-            "https://raw.githubusercontent.com/grandparoach/sandbox/LCI/startup.sh"
+            "https://raw.githubusercontent.com/grandparoach/sandbox/LCI2023/startup.sh"
             ],
             "commandToExecute": "[concat('bash startup.sh ', parameters('adminUserName'), ' ', parameters('adminPassword'), ' ', parameters('OSselection'))]"
           }
