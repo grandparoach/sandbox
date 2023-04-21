@@ -31,6 +31,7 @@ then
     yum install -y sshpass
 else
     apt-get -y update
+    export TERM=Teletype
     apt-get install -y sshpass
 fi
     ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -P ''
