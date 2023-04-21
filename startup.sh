@@ -30,6 +30,7 @@ if [ $OSselection -eq 'Rocky_8' ]
 then
     yum -y install sshpass
 else
+    apt-get update
     apt-get -y install sshpass
 fi
     ssh-keygen -t rsa -f /root/.ssh/id_rsa -q -P ''
