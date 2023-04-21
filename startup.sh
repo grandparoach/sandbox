@@ -23,6 +23,7 @@ sed -i 's/#ClientAliveInterval 0/ClientAliveInterval 3600/I' /etc/ssh/sshd_confi
 
 #Allow root login
 sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/I' /etc/ssh/sshd_config
+sudo sed -i 's/PasswordAuthentication no/PasswordAuthentication yes/I' /etc/ssh/sshd_config
 systemctl restart sshd
 
 # Disable tty requirement for sudo
