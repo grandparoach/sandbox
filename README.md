@@ -6,5 +6,5 @@ This link will deploy a login (head) node with 5 x 5GB disks and 4 compute nodes
 </a>
 
 
-![Workshop Environment](LCI_environment2.png)
+![Workshop Environment](LCI%202023%20Architecture.png)
 
