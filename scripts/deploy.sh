@@ -7,6 +7,6 @@ index=$count
 while [ $index -le $end_count ]
 do
    az group create -l southcentralus -n "student-$index"
-   az group deployment create -g "student-$index" --template-uri https://raw.githubusercontent.com/grandparoach/sandbox/LCI2023/azuredeploy.json --parameters @lciparams.json OSSelection=$OSselection &
+   az deployment group create -g "student-$index" --template-uri https://raw.githubusercontent.com/grandparoach/sandbox/LCI2023/azuredeploy.json --parameters @lciparams.json OSSelection=$OSselection &
    let index=$index+1
 done
