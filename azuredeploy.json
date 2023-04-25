@@ -4,10 +4,10 @@
     "parameters": {
         "OSselection":{
             "type": "string",
-            "defaultValue": "Rocky_8",
+            "defaultValue": "Rocky",
             "allowedValues": [
-              "Rocky_8",
-              "Ubuntu_2004"
+              "Rocky",
+              "Ubuntu"
             ],
             "metadata": {
               "description": "OS family for all the VM's."
@@ -31,19 +31,13 @@
     "variables": {
               
         "Images": {
-            "Ubuntu_2004": {
+            "Ubuntu": {
               "publisher": "canonical",
               "offer": "0001-com-ubuntu-server-focal",
               "sku": "20_04-lts-gen2",
               "version": "latest"
             },
-            "CentOS_7": {
-              "publisher": "OpenLogic",
-              "offer": "CentOS-HPC",
-              "sku": "7_9-gen2",
-              "version": "latest"
-            },
-            "Rocky_8": {
+            "Rocky": {
               "publisher": "erockyenterprisesoftwarefoundationinc1653071250513",
               "offer": "rockylinux",
               "sku": "free",
@@ -52,13 +46,12 @@
         },
         "NodeimageReference": "[variables('Images')[parameters('OSselection')]]",
         "Plans": {
-            "CentOS_7": {}, 
             "Ubuntu_2004": {
                "name": "20_04-lts-ARM",
                "product": "0001-com-ubuntu-server-focal",
                "publisher": "canonical"  
             },
-            "Rocky_8": {
+            "Rocky": {
                "name": "free",
                "product": "rockylinux",
                "publisher": "erockyenterprisesoftwarefoundationinc1653071250513"
@@ -143,7 +136,7 @@
                 "name": "ComputeVmCopy",
                 "count": 4
               },
-            "plan": "[if(equals(parameters('OSselection'), 'Rocky_8'), variables('NodePlanReference'), json('null'))]",
+            "plan": "[if(equals(parameters('OSselection'), 'Rocky'), variables('NodePlanReference'), json('null'))]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_F2s"
@@ -219,7 +212,7 @@
             "dependsOn": [
                 "[resourceId('Microsoft.Network/networkInterfaces', 'head-nic')]"
             ],
-            "plan": "[if(equals(parameters('OSselection'), 'Rocky_8'), variables('NodePlanReference'), json('null'))]",
+            "plan": "[if(equals(parameters('OSselection'), 'Rocky'), variables('NodePlanReference'), json('null'))]",
             "properties": {
                 "hardwareProfile": {
                     "vmSize": "Standard_F2s"
