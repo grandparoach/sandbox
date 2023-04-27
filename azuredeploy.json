@@ -46,7 +46,7 @@
         },
         "NodeimageReference": "[variables('Images')[parameters('OSselection')]]",
         "Plans": {
-            "Ubuntu_2004": {
+            "Ubuntu": {
                "name": "20_04-lts-ARM",
                "product": "0001-com-ubuntu-server-focal",
                "publisher": "canonical"  
