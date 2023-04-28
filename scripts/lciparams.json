@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
       "parameters": {
         "OSselection":{ "value": "Rocky" },
-        "adminUserName": { "value": "lci" },
-        "adminPassword": { "value": "Osulci2019" }
+        "adminUserName": { "value": "instructor" },
+        "adminPassword": { "value": "AzureRocks2023" }
       }
 }
