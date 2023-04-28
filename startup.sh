@@ -63,9 +63,11 @@ fi
     
 }
 
-configure_ssh
+# configure_ssh
 
 if [ $OSselection = 'Rocky' ]
 then
     yum -y update
+else
+    apt-get -y update
 fi
