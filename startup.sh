@@ -6,7 +6,7 @@ adminUserName=${1}
 adminPassword=${2}
 OSselection=${3}
 
-if [ $OSselection = 'Rocky_8' ]
+if [ $OSselection = 'Rocky' ]
 then
     #disable_selinux
     sed -i 's/^SELINUX=.*/SELINUX=disabled/I' /etc/selinux/config
@@ -36,7 +36,7 @@ echo "$adminUserName ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 configure_ssh() {
     
-if [ $OSselection = 'Rocky_8' ]
+if [ $OSselection = 'Rocky' ]
 then
     yum install -y sshpass
 else
@@ -65,7 +65,7 @@ fi
 
 configure_ssh
 
-if [ $OSselection = 'Rocky_8' ]
+if [ $OSselection = 'Rocky' ]
 then
     yum -y update
 fi
